@@ -2,11 +2,11 @@
 
 This is a local review runbook. Hosted database writes, deployment and access-policy changes require explicit user approval. Always verify the target belongs to MOTIVE; never use Orbit bindings or credentials.
 
-## Supported one-time bootstrap
+## Bootstrap and hosted logging STOP gate
 
-Use [FOUNDATION_INFRASTRUCTURE.md](FOUNDATION_INFRASTRUCTURE.md) for supported deployment/secret configuration, the one-time bootstrap request, diagnostic interpretation and staging isolation gates. Initial bootstrap no longer assumes arbitrary hosted SQL access: the available Sites D1 tools are read-only. A short-lived native runtime permit authorizes one atomic administrator/first-invitation initialization, permanently recorded in D1 and checked against an R2 installation marker. All private app routes require matching configured installation markers.
+The old bearer-header bootstrap procedure is retired following the reported platform-log disclosure. Use [BOOTSTRAP_REPAIR.md](BOOTSTRAP_REPAIR.md) for the offline-signed immutable intent, private preparation file, safe HTTP subset, phase-based failure handling and explicit hosted approval gates. Do not retrieve/reuse the compromised credential or reactivate the old permit. The new protocol returns no invitation/password/session over bootstrap HTTP; the old `MOTIVE_BOOTSTRAP` configuration is ignored.
 
-The offline `scripts/prepare-foundation.mjs` helper prepares the target/permit but performs no network or database operation. No values have been configured and no hosted bootstrap has run. Hosted configuration, provisioning, deployment and initialization each need the explicit approval described in that runbook. The older `prepare-invitation.mjs` SQL generator remains for local/operator reference only; it is not the supported hosted initialization mechanism.
+Normal account, guest and file flows below transmit passwords, codes or session cookies. Their hosted verification remains blocked until supported platform logging protection for the relevant request/response fields and the outer Site gate is established. Application no-store/HttpOnly settings do not redact platform logs. No hosted configuration or deployment was performed by the repair.
 
 ## Recovery / restriction
 

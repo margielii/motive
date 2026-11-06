@@ -1,14 +1,20 @@
 import hosting from '../.openai/hosting.json';
-import { digest, passwordHash, token } from './crypto';
+import { digest } from './crypto';
+import { serializeBootstrapIntent } from '../lib/bootstrap-intent.mjs';
 
 export type FoundationEnv = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
   MOTIVE_INSTANCE?: string;
-  MOTIVE_BOOTSTRAP?: string;
+  MOTIVE_BOOTSTRAP_V2?: string;
 };
 type Instance = { siteId: string; instanceId: string; stage: 'local' | 'staging' | 'production' };
-type Permit = { tokenHash: string; issuedAt: number; expiresAt: number; adminEmail: string };
+type Intent = Instance & {
+  version: 2; operationId: string; issuedAt: number; expiresAt: number;
+  adminEmail: string; passwordHash: string; invitationEmail: string;
+  invitationHash: string; invitationExpiresAt: number;
+  publicKey: {kty:'EC'; crv:'P-256'; x:string; y:string};
+};
 type Installation = { site_id: string; instance_id: string; stage: string };
 const DAY = 86400000;
 export const MARKER_KEY = '__motive_installation_v1';
@@ -23,21 +29,31 @@ function instance(env: FoundationEnv): Instance | null {
     return { siteId: p.siteId, instanceId: p.instanceId, stage: p.stage };
   } catch { return null; }
 }
-function permit(env: FoundationEnv): Permit | null {
+function approvedIntent(env: FoundationEnv): Intent | null {
   try {
-    const p = JSON.parse(env.MOTIVE_BOOTSTRAP ?? 'null');
-    const now = Date.now();
-    if (!instance(env) || typeof p?.tokenHash !== 'string' || !/^[a-f0-9]{64}$/.test(p.tokenHash) || !Number.isSafeInteger(p.issuedAt) || p.issuedAt > now || !Number.isSafeInteger(p.expiresAt) || p.expiresAt <= now || p.expiresAt > p.issuedAt + 3600000 || !email(p.adminEmail)) return null;
+    const p = JSON.parse(env.MOTIVE_BOOTSTRAP_V2 ?? 'null'), target = instance(env), now = Date.now();
+    if (!target || p?.version !== 2 || p.siteId !== target.siteId || p.instanceId !== target.instanceId || p.stage !== target.stage
+      || typeof p.operationId !== 'string' || !/^[a-f0-9-]{36}$/.test(p.operationId)
+      || !Number.isSafeInteger(p.issuedAt) || p.issuedAt > now || !Number.isSafeInteger(p.expiresAt) || p.expiresAt <= now || p.expiresAt > p.issuedAt + 3600000
+      || !email(p.adminEmail) || !email(p.invitationEmail) || p.adminEmail === p.invitationEmail
+      || typeof p.passwordHash !== 'string' || !/^pbkdf2-sha256\$600000\$[a-f0-9]{64}\$[a-f0-9]{64}$/.test(p.passwordHash)
+      || typeof p.invitationHash !== 'string' || !/^[a-f0-9]{64}$/.test(p.invitationHash)
+      || !Number.isSafeInteger(p.invitationExpiresAt) || p.invitationExpiresAt <= now || p.invitationExpiresAt > p.issuedAt + DAY
+      || p.publicKey?.kty !== 'EC' || p.publicKey.crv !== 'P-256' || !/^[A-Za-z0-9_-]{43}$/.test(p.publicKey.x) || !/^[A-Za-z0-9_-]{43}$/.test(p.publicKey.y)) return null;
     return p;
   } catch { return null; }
 }
-async function operator(req: Request, env: FoundationEnv): Promise<Permit | null> {
-  const p = permit(env), raw = req.headers.get('X-Motive-Bootstrap') ?? '';
-  if (!p || !/^[a-f0-9]{64}$/.test(raw)) return null;
-  const hash = await digest(raw);
-  let diff = 0;
-  for (let i = 0; i < 64; i++) diff |= hash.charCodeAt(i) ^ p.tokenHash.charCodeAt(i);
-  return diff === 0 ? p : null;
+async function signedIntent(req: Request, env: FoundationEnv, payload: (req: Request) => Promise<Record<string,string>>): Promise<Intent | null> {
+  const p = approvedIntent(env);
+  // Never read or authenticate the retired bearer header. Legacy permits are ignored.
+  if (!p || req.headers.has('X-Motive-Bootstrap')) return null;
+  const request = await payload(req);
+  if (Object.keys(request).sort().join(',') !== 'operationId,signature,version' || request.version !== '2' || request.operationId !== p.operationId || !/^[a-f0-9]{128}$/.test(request.signature ?? '')) return null;
+  try {
+    const key = await crypto.subtle.importKey('jwk',p.publicKey,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+    const signature = Uint8Array.from(request.signature.match(/../g)!,v=>parseInt(v,16));
+    return await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,signature,new TextEncoder().encode(serializeBootstrapIntent(p))) ? p : null;
+  } catch { return null; }
 }
 async function administrator(req: Request, env: FoundationEnv) {
   const raw = req.headers.get('Cookie')?.split(';').map(c => c.trim()).find(c => c.startsWith('__Host-motive='))?.slice('__Host-motive='.length) ?? '';
@@ -96,42 +112,53 @@ export async function foundationRequest(req: Request, env: FoundationEnv, path: 
   if (path !== '/api/foundation/bootstrap' && path !== '/api/foundation/diagnostics') return null;
   if (path === '/api/foundation/diagnostics') {
     if (req.method !== 'GET') return deny(405);
-    // Before initialization: short-lived operator permit. Afterward: active MOTIVE admin.
-    // No reliance on spoofable ChatGPT identity or on the Site being private.
-    if (!await operator(req, env) && !await administrator(req, env)) return deny(403);
+    // Pre-initialization diagnostics no longer accept any HTTP credential.
+    if (!await administrator(req, env)) return deny(403);
     return Response.json(await diagnostics(env));
   }
   if (req.method !== 'POST') return deny(405);
   if (req.headers.get('Origin') !== new URL(req.url).origin) return deny(403);
-  const authorization = await operator(req, env);
-  if (!authorization) return deny(403);
-  const target = instance(env)!;
-  const p = await payload(req);
-  if (p.confirm !== 'INITIALIZE MOTIVE ONCE' || p.siteId !== target.siteId || p.instanceId !== target.instanceId || p.stage !== target.stage || p.adminEmail !== authorization.adminEmail || !email(p.invitationEmail) || p.invitationEmail === p.adminEmail || typeof p.password !== 'string' || p.password.length < 12 || p.password.length > 128) return deny(400);
-  const state = await diagnostics(env);
-  if (!state.d1.reachable || !state.d1.schemaReady || !state.r2.reachable) return deny(503);
-  if (state.d1.claimed || (state.r2.claimed && !state.r2.matches)) return deny(409);
-  const db = env.DB!, bucket = env.BUCKET!;
-  // Refuse pre-existing application data. No automatic takeover/promotion of imported accounts.
-  const empty = ['accounts','invitations','sessions','recovery','groups','plans','group_members','plan_members','guest_grants','guest_sessions','images'].map(table=>`NOT EXISTS(SELECT 1 FROM ${table})`).join(' AND ');
-  if (!(await db.prepare(`SELECT ${empty} AS empty`).first<{empty:number}>())?.empty) return deny(409);
-  const password = await passwordHash(p.password);
-  // R2 and D1 have no shared transaction. Reserve the bucket once, never overwrite it.
-  // A matching R2 reservation without a D1 commit is safe to retry with the same target.
-  if (!state.r2.claimed && (await bucket.list({limit:1})).objects.length !== 0) return deny(409);
-  if (!state.r2.claimed) await bucket.put(MARKER_KEY, JSON.stringify({site_id:target.siteId,instance_id:target.instanceId,stage:target.stage}), { onlyIf: { etagDoesNotMatch: '*' }, httpMetadata:{contentType:'application/json'} });
-  const marker = await bucketMarker(env);
-  if (!marker || !same(target, marker)) return deny(409);
-  const bootstrapId = crypto.randomUUID(), accountId = crypto.randomUUID(), invitation = token(), now = Date.now();
-  const invitationHash = await digest(invitation);
-  // Unique singleton row serializes concurrent attempts; every dependent write is
-  // tied to this invocation's nonce. D1 batch rollback prevents partial admin setup.
-  const result = await db.batch([
-    db.prepare(`INSERT INTO foundation_installation(id,site_id,instance_id,stage,bootstrap_id,initialized_at) SELECT 1,?,?,?,?,? WHERE ${empty}`).bind(target.siteId,target.instanceId,target.stage,bootstrapId,now),
-    db.prepare("INSERT INTO accounts(id,email,password,admin) SELECT ?,?,?,1 FROM foundation_installation WHERE id=1 AND bootstrap_id=?").bind(accountId,p.adminEmail,password,bootstrapId),
-    db.prepare('INSERT INTO invitations(hash,email,expires,used) SELECT ?,?,?,0 FROM foundation_installation WHERE id=1 AND bootstrap_id=?').bind(invitationHash,p.invitationEmail,now+DAY,bootstrapId),
-  ]).catch(() => null);
-  if (!result || result.some(r=>r.meta.changes !== 1)) return deny(409);
-  // No automatic session, privilege grant to the invitee, or reusable reset route.
-  return Response.json({ initialized:true, invitation:{token:invitation,expires:now+DAY} },{status:201});
+  const intent = await signedIntent(req, env, payload);
+  if (!intent) return deny(403);
+  let phase = 'readiness';
+  try {
+    const state = await diagnostics(env);
+    if (!state.d1.reachable || !state.d1.schemaReady || !state.r2.reachable) {
+      return Response.json({error:'BOOTSTRAP_UNAVAILABLE',phase:!state.d1.reachable?'d1_read':!state.d1.schemaReady?'schema':'r2_read'},{status:503});
+    }
+    if (state.d1.claimed || (state.r2.claimed && !state.r2.matches)) return deny(409);
+    const db = env.DB!, bucket = env.BUCKET!;
+    const empty = ['accounts','invitations','sessions','recovery','groups','plans','group_members','plan_members','guest_grants','guest_sessions','images'].map(table=>`NOT EXISTS(SELECT 1 FROM ${table})`).join(' AND ');
+    phase = 'd1_empty_check';
+    if (!(await db.prepare(`SELECT ${empty} AS empty`).first<{empty:number}>())?.empty) return deny(409);
+    phase = 'r2_reserve';
+    if (!state.r2.claimed && (await bucket.list({limit:1})).objects.length !== 0) return deny(409);
+    if (!state.r2.claimed) await bucket.put(MARKER_KEY,JSON.stringify({site_id:intent.siteId,instance_id:intent.instanceId,stage:intent.stage}),{onlyIf:{etagDoesNotMatch:'*'},httpMetadata:{contentType:'application/json'}});
+    phase = 'r2_verify';
+    const marker = await bucketMarker(env);
+    if (!marker || !same(intent,marker)) return deny(409);
+    const bootstrapId = crypto.randomUUID(), accountId = crypto.randomUUID();
+    phase = 'd1_commit';
+    // No runtime password KDF and no credential generation/transmission over HTTP.
+    // Only the exact signed, native-approved operation can populate this batch.
+    let result: D1Result[];
+    try {
+      result = await db.batch([
+        db.prepare(`INSERT INTO foundation_installation(id,site_id,instance_id,stage,bootstrap_id,initialized_at) SELECT 1,?,?,?,?,? WHERE ${empty}`).bind(intent.siteId,intent.instanceId,intent.stage,bootstrapId,Date.now()),
+        db.prepare('INSERT INTO accounts(id,email,password,admin) SELECT ?,?,?,1 FROM foundation_installation WHERE id=1 AND bootstrap_id=?').bind(accountId,intent.adminEmail,intent.passwordHash,bootstrapId),
+        db.prepare('INSERT INTO invitations(hash,email,expires,used) SELECT ?,?,?,0 FROM foundation_installation WHERE id=1 AND bootstrap_id=?').bind(intent.invitationHash,intent.invitationEmail,intent.invitationExpiresAt,bootstrapId),
+      ]);
+    } catch {
+      // A concurrent winner or an ambiguous commit acknowledgment must never cause
+      // a second initialization. Never serialize a database exception or its values.
+      if (await db.prepare('SELECT 1 FROM foundation_installation WHERE id=1').first()) return deny(409);
+      throw new Error('Commit unavailable');
+    }
+    if (result.some(r=>r.meta.changes !== 1)) return deny(409);
+    return Response.json({initialized:true},{status:201});
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    // Fixed phase enums help safe hosted diagnosis without fetching raw request logs.
+    return Response.json({error:'BOOTSTRAP_UNAVAILABLE',phase},{status:503});
+  }
 }

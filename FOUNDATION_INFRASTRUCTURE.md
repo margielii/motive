@@ -1,3 +1,5 @@
+> **Retired bootstrap procedure:** The original header-based permit below was reported exposed by platform logging during a hosted attempt. Do not execute it, retrieve/reuse that credential, or reactivate the old permit. [BOOTSTRAP_REPAIR.md](BOOTSTRAP_REPAIR.md) supersedes the bootstrap, diagnostics-access and preparation instructions below. The remaining material is historical evidence for baseline `4a2b9cb`, not authorization to deploy.
+
 # Foundation infrastructure unblocking
 
 Baseline: `bc5357f7d6e4ec7405f67db95c9fb910a27742bf`, existing draft PR #1 / `foundation/poc`. This is a separate, additive change. **PASS for supported implementation and local validation; BLOCKED for hosted readiness, verified staging isolation and a verified C$0 operating claim.** No merge, provision, deployment, publication, runtime configuration change, or Orbit modification was performed.

@@ -1,3 +1,5 @@
+> **Current incident status:** Hosted bootstrap at deployed baseline `4a2b9cb` reportedly returned 503 and exposed its credential header in platform logs. The cause is unverified without sanitized failure metadata. The old bootstrap is retired; see [BOOTSTRAP_REPAIR.md](BOOTSTRAP_REPAIR.md). Hosted account/guest/image tests remain blocked by initialization and platform logging/outer-gate verification. Historical local passes below are not hosted proof.
+
 # MOTIVE Foundation PR #1
 
 Verdict: **BLOCKED for release/publication**. **PASS for local foundation checks** on 2026-11-06. Hosted security, real iPhone installation and actual account quota/CPU evidence remain outstanding. Keep PR #1 draft. No merge, deployment, publication, paid provisioning, Site audience change or Orbit modification was performed.

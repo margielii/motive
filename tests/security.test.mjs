@@ -1,3 +1,4 @@
+import {makeBootstrap} from './bootstrap-fixture.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {tmpdir} from 'node:os';
@@ -15,8 +16,8 @@ test('MOTIVE D1/R2 authorization and lifecycle integration', async t=>{
  const builtModules = process.env.MOTIVE_BUILT_WORKER ? ['index.js',...(await readdir('dist/server',{recursive:true})).filter(p=>p.endsWith('.js') && p!=='index.js')].map(p=>({type:'ESModule',path:resolve('dist/server',p)})) : null;
  const persist=await mkdtemp(resolve(tmpdir(),'motive-emulator-'));
  const target={siteId:JSON.parse(await readFile('.openai/hosting.json','utf8')).project_id,instanceId:crypto.randomUUID(),stage:'local'};
- const operatorToken=raw(), issuedAt=Date.now();
- const vars={MOTIVE_INSTANCE:JSON.stringify(target),MOTIVE_BOOTSTRAP:JSON.stringify({tokenHash:await hash(operatorToken),issuedAt,expiresAt:issuedAt+3600000,adminEmail:'bootstrap@motive.test'})};
+ const bootstrap=await makeBootstrap(target,{adminEmail:'bootstrap@motive.test',invitationEmail:'initial@motive.test'});
+ const vars={MOTIVE_INSTANCE:JSON.stringify(target),MOTIVE_BOOTSTRAP_V2:JSON.stringify(bootstrap.intent)};
  const options={bindings:vars,d1Persist:resolve(persist,'d1'),r2Persist:resolve(persist,'r2'),...(builtModules ? {modules:builtModules,modulesRoot:resolve('dist/server'),assets:{directory:resolve('dist/client'),binding:'ASSETS',routerConfig:{has_user_worker:true,invoke_user_worker_ahead_of_assets:true}}} : {modules:true,script:bundle.outputFiles[0].text}),compatibilityFlags:['nodejs_compat'],compatibilityDate:'2026-05-15',d1Databases:['DB'],r2Buckets:['BUCKET']};
  let mf=new Miniflare(options);
  try {
@@ -35,7 +36,7 @@ test('MOTIVE D1/R2 authorization and lifecycle integration', async t=>{
  const call=async(path,{method='GET',data,cookie,origin='https://motive.test',type,body}={})=>mf.dispatchFetch('https://motive.test'+path,{method,headers:{...(method!=='GET'?{Origin:origin}:{}),...(cookie?{Cookie:cookie}:{}),...(type?{'Content-Type':type}:{'Content-Type':'application/json'})},body:body??(data?JSON.stringify(data):undefined)});
  const expect=async(path,status,opts)=>{const r=await call(path,opts);assert.equal(r.status,status,`${path}: ${await r.clone().text()}`);return r;};
  const invite=async email=>{const token=raw();await q('INSERT INTO invitations VALUES (?,?,?,0)',await hash(token),email,Date.now()+60000).run();return token;};
- const setup=await mf.dispatchFetch('https://motive.test/api/foundation/bootstrap',{method:'POST',headers:{Origin:'https://motive.test','X-Motive-Bootstrap':operatorToken},body:JSON.stringify({...target,confirm:'INITIALIZE MOTIVE ONCE',adminEmail:'bootstrap@motive.test',password:'bootstrap test password',invitationEmail:'initial@motive.test'})});
+ const setup=await mf.dispatchFetch('https://motive.test/api/foundation/bootstrap',{method:'POST',headers:{Origin:'https://motive.test','Content-Type':'application/json'},body:JSON.stringify(bootstrap.request)});
  assert.equal(setup.status,201,await setup.text());
  const password='correct horse battery staple';
  let ownerCookie,otherCookie,viewerCookie,planId,groupId,imageId,guestCookie,grantHash;
