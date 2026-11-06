@@ -19,3 +19,13 @@ export const guestGrants = sqliteTable('guest_grants', { hash:text('hash').prima
 export const guestSessions = sqliteTable('guest_sessions', { hash:text('hash').primaryKey(), grantHash:text('grant_hash').notNull().references(()=>guestGrants.hash), expires:integer('expires').notNull() });
 export const images = sqliteTable('images', { id:text('id').primaryKey(), planId:text('plan_id').notNull().references(()=>plans.id), ownerId:text('owner_id').notNull().references(()=>accounts.id), type:text('type').notNull(), size:integer('size').notNull() });
 export const rateLimits = sqliteTable('rate_limits', { key:text('key').primaryKey(), count:integer('count').notNull(), expires:integer('expires').notNull() });
+
+// Permanent one-time initialization ledger. Never remove/reset to recover an account.
+export const foundationInstallation = sqliteTable('foundation_installation', {
+  id: integer('id').primaryKey(),
+  siteId: text('site_id').notNull(),
+  instanceId: text('instance_id').notNull(),
+  stage: text('stage').notNull(),
+  bootstrapId: text('bootstrap_id').notNull(),
+  initializedAt: integer('initialized_at').notNull(),
+});

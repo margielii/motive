@@ -1,6 +1,7 @@
+import { foundationRequest, installationMatches, type FoundationEnv } from './foundation';
 import { digest, token, passwordHash, verifyPassword } from './crypto';
 
-type Env = { DB?: D1Database; BUCKET?: R2Bucket };
+type Env = FoundationEnv;
 type Account = { id: string; email: string; admin: number; password: string };
 const DAY = 86400000;
 const MAX_IMAGE = 2 * 1024 * 1024;
@@ -44,6 +45,9 @@ export async function boundary(req: Request, env: Env): Promise<Response | null>
   return response;
 }
 async function route(req: Request, env: Env, path: string): Promise<Response> {
+  const foundation = await foundationRequest(req, env, path, payload);
+  if (foundation) return foundation;
+  if (!await installationMatches(env)) return fail(503);
   const db = env.DB; if (!db) return fail(503);
   const q = (sql: string, ...args: (string | number)[]) => db.prepare(sql).bind(...args);
   const now = Date.now();

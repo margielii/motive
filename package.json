@@ -14,7 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "test:production": "MOTIVE_BUILT_WORKER=1 node --test tests/security.test.mjs",
+    "test:production": "MOTIVE_BUILT_WORKER=1 node --test tests/security.test.mjs tests/foundation.test.mjs",
     "check:package": "node scripts/check-package.mjs"
   },
   "dependencies": {

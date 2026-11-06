@@ -2,6 +2,10 @@
 
 Verdict: **BLOCKED for release/publication**. **PASS for local foundation checks** on 2026-11-06. Hosted security, real iPhone installation and actual account quota/CPU evidence remain outstanding. Keep PR #1 draft. No merge, deployment, publication, paid provisioning, Site audience change or Orbit modification was performed.
 
+## Infrastructure follow-up
+
+The additive follow-up to `bc5357f7d6e4ec7405f67db95c9fb910a27742bf` implements a supported native-runtime-secret/bootstrap route, permanent initialization ledger, D1/R2 claims and fail-closed installation checks. It supersedes the original manual-SQL bootstrap assumption below. Current evidence, deployment ordering and cost/isolation limitations are in [FOUNDATION_INFRASTRUCTURE.md](FOUNDATION_INFRASTRUCTURE.md). No hosted resource or environment configuration was changed. The 16/13 test counts below describe the original baseline; see the infrastructure report for the expanded suite.
+
 ## Baseline and scope
 
 Inspected existing draft https://github.com/margielii/motive/pull/1 before editing. Its branch `foundation/poc` was at `1573581519f83bf23fc537b9bea1bfd12c91572d`, matching the verified imported baseline. Continued the existing checkout and preserved the imported components, framework, connectors, probe migration and guest primitives. Replaced the starter placeholder page with the MOTIVE shell; added application code and an append-only migration. No competing PR or repository was created.
@@ -52,7 +56,7 @@ Limits: no malware scanning, full image decoding/re-encoding, EXIF removal or th
 
 ## Invitation and recovery operations
 
-See [FOUNDATION_OPERATIONS.md](FOUNDATION_OPERATIONS.md). There are no seeded accounts, default passwords or bootstrap HTTP endpoints. Operator access is required for initial invitation/admin setup. Do not execute hosted bootstrap or change any hosted resources without separate user approval.
+See [FOUNDATION_OPERATIONS.md](FOUNDATION_OPERATIONS.md). There are no seeded accounts or default passwords. The supported bootstrap HTTP route requires a short-lived native runtime permit, exact target confirmation and a fresh database, and is permanently disabled by its committed ledger after successful initialization. See the infrastructure follow-up for ordering and safeguards. Do not execute hosted bootstrap or change any hosted resources without separate user approval.
 
 ## C$0 incremental monthly assessment
 

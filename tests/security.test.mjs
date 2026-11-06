@@ -14,7 +14,10 @@ test('MOTIVE D1/R2 authorization and lifecycle integration', async t=>{
  const bundle=await build({entryPoints:['tests/boundary-worker.ts'],bundle:true,format:'esm',write:false});
  const builtModules = process.env.MOTIVE_BUILT_WORKER ? ['index.js',...(await readdir('dist/server',{recursive:true})).filter(p=>p.endsWith('.js') && p!=='index.js')].map(p=>({type:'ESModule',path:resolve('dist/server',p)})) : null;
  const persist=await mkdtemp(resolve(tmpdir(),'motive-emulator-'));
- const options={d1Persist:resolve(persist,'d1'),r2Persist:resolve(persist,'r2'),...(builtModules ? {modules:builtModules,modulesRoot:resolve('dist/server'),assets:{directory:resolve('dist/client'),binding:'ASSETS',routerConfig:{has_user_worker:true,invoke_user_worker_ahead_of_assets:true}}} : {modules:true,script:bundle.outputFiles[0].text}),compatibilityFlags:['nodejs_compat'],compatibilityDate:'2026-05-15',d1Databases:['DB'],r2Buckets:['BUCKET']};
+ const target={siteId:JSON.parse(await readFile('.openai/hosting.json','utf8')).project_id,instanceId:crypto.randomUUID(),stage:'local'};
+ const operatorToken=raw(), issuedAt=Date.now();
+ const vars={MOTIVE_INSTANCE:JSON.stringify(target),MOTIVE_BOOTSTRAP:JSON.stringify({tokenHash:await hash(operatorToken),issuedAt,expiresAt:issuedAt+3600000,adminEmail:'bootstrap@motive.test'})};
+ const options={bindings:vars,d1Persist:resolve(persist,'d1'),r2Persist:resolve(persist,'r2'),...(builtModules ? {modules:builtModules,modulesRoot:resolve('dist/server'),assets:{directory:resolve('dist/client'),binding:'ASSETS',routerConfig:{has_user_worker:true,invoke_user_worker_ahead_of_assets:true}}} : {modules:true,script:bundle.outputFiles[0].text}),compatibilityFlags:['nodejs_compat'],compatibilityDate:'2026-05-15',d1Databases:['DB'],r2Buckets:['BUCKET']};
  let mf=new Miniflare(options);
  try {
  if (builtModules) await t.test('production assets, manifest and PWA are reachable without private records',async()=>{
@@ -24,7 +27,7 @@ test('MOTIVE D1/R2 authorization and lifecycle integration', async t=>{
   const icon=await mf.dispatchFetch('https://motive.test/icons/motive-192.png');assert.equal(icon.status,200);
  });
  const db=await mf.getD1Database('DB');
- for(const name of ['0000_fast_imperial_guard','0001_motive']) {
+ for(const {tag:name} of JSON.parse(await readFile('drizzle/meta/_journal.json','utf8')).entries) {
   const sql=await readFile(`drizzle/${name}.sql`,'utf8');
   for(const statement of sql.split(';').map(s=>s.replace('--> statement-breakpoint','').trim()).filter(Boolean)) await db.prepare(statement).run();
  }
@@ -32,6 +35,8 @@ test('MOTIVE D1/R2 authorization and lifecycle integration', async t=>{
  const call=async(path,{method='GET',data,cookie,origin='https://motive.test',type,body}={})=>mf.dispatchFetch('https://motive.test'+path,{method,headers:{...(method!=='GET'?{Origin:origin}:{}),...(cookie?{Cookie:cookie}:{}),...(type?{'Content-Type':type}:{'Content-Type':'application/json'})},body:body??(data?JSON.stringify(data):undefined)});
  const expect=async(path,status,opts)=>{const r=await call(path,opts);assert.equal(r.status,status,`${path}: ${await r.clone().text()}`);return r;};
  const invite=async email=>{const token=raw();await q('INSERT INTO invitations VALUES (?,?,?,0)',await hash(token),email,Date.now()+60000).run();return token;};
+ const setup=await mf.dispatchFetch('https://motive.test/api/foundation/bootstrap',{method:'POST',headers:{Origin:'https://motive.test','X-Motive-Bootstrap':operatorToken},body:JSON.stringify({...target,confirm:'INITIALIZE MOTIVE ONCE',adminEmail:'bootstrap@motive.test',password:'bootstrap test password',invitationEmail:'initial@motive.test'})});
+ assert.equal(setup.status,201,await setup.text());
  const password='correct horse battery staple';
  let ownerCookie,otherCookie,viewerCookie,planId,groupId,imageId,guestCookie,grantHash;
  await t.test('default deny, spoofed identity, CSRF and unknown methods',async()=>{
