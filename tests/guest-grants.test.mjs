@@ -18,3 +18,11 @@ test('grant denies wrong resource, action, expiry and revocation', () => {
   assert.equal(allowsGuestAction({...grant, revokedAt: 50}, {planId:'p1', action:'view', now:100}), false);
   assert.equal(allowsGuestAction(null, {planId:'p1', action:'view', now:100}), false);
 });
+
+test('missing, malformed and nonfinite grants fail closed at expiry boundaries', () => {
+ const request = {planId:'p1',action:'view',now:100};
+ for (const expiresAt of [undefined, NaN, Infinity, '200', 100, -1]) {
+  assert.equal(allowsGuestAction({planId:'p1',actions:['view'],expiresAt},request),false);
+ }
+ assert.equal(allowsGuestAction({planId:'p1',actions:'view',expiresAt:200},request),false);
+});

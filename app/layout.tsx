@@ -2,16 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Starter Project",
-  description: "A clean starting point for building your site.",
-  other: {
-    "codex-preview": "development",
-  },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
+  title: "MOTIVE", description: "Private plans, shared with intention.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "MOTIVE", statusBarStyle: "default" },
+  icons: { icon: "/icons/motive-192.png", apple: "/icons/motive-apple.png" },
 };
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#294b3b", viewportFit: "cover" };
 
 export default function RootLayout({
   children,

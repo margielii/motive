@@ -135,3 +135,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.motive-shell { max-width: 1040px; margin: auto; padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)); color: #192d27; }
+.motive-shell header { display:flex; justify-content:space-between; gap:16px; align-items:center; padding:12px 0 32px; border-bottom:1px solid #cbd5cc; }
+.motive-shell header a { font-size:28px; font-weight:800; letter-spacing:.12em; text-decoration:none; }
+.motive-shell header span { display:block; font-size:12px; letter-spacing:0; font-weight:400; }
+.motive-shell section { padding:32px 0; }
+.motive-shell h1 { font-size:clamp(32px,6vw,64px); line-height:1.1; font-weight:650; margin:12px 0 24px; }
+.motive-shell h2 { font-size:22px; font-weight:600; margin-bottom:16px; }
+.motive-shell .eyebrow { text-transform:uppercase; letter-spacing:.14em; font-size:12px; }
+.motive-shell p { margin-bottom:16px; overflow-wrap:anywhere; }
+.motive-shell form, .motive-shell article { border:1px solid #cbd5cc; padding:24px; border-radius:16px; margin:24px 0; background:#fbfcf9; }
+.motive-shell article form { border:0; padding:0; }
+.motive-shell label { display:block; margin:12px 0; font-size:14px; }
+.motive-shell input, .motive-shell select { display:block; width:100%; min-height:48px; padding:10px; border:1px solid #899b8e; border-radius:8px; margin-top:6px; background:white; font-size:16px; }
+.motive-shell button { min-height:44px; padding:10px 18px; border:1px solid #294b3b; border-radius:8px; background:#294b3b; color:#fff; cursor:pointer; }
+.motive-shell nav { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0; }
+.motive-shell .motive-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:20px; }
+.motive-shell footer { font-size:13px; border-top:1px solid #cbd5cc; padding-top:24px; }
+.motive-shell :focus-visible { outline:3px solid #ae6629; outline-offset:3px; }
