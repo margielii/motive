@@ -1,0 +1,5 @@
+
+> site-creator-vinext-starter@0.1.0 check:package
+> node scripts/check-package.mjs
+
+PASS: Sites manifest, bindings, worker-first assets, migration journal/SQL and PWA assets match build output. Hosted archive acceptance is unverified.

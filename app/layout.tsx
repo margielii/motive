@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "MOTIVE",
-  description: "Private plans, shared with intention. Synthetic prototype.",
+  description: "Private Motives. Owner-only synthetic UI prototype.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#111113",
+  themeColor: "#141516",
   viewportFit: "cover",
 };
 

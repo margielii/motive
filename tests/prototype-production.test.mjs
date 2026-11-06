@@ -35,10 +35,12 @@ test(
     t.after(() => mf.dispose());
     const home = await mf.dispatchFetch("https://motive.test/");
     assert.equal(home.status, 200);
-    assert.match(await home.text(), /Start synthetic session/);
+    assert.match(await home.text(), /Explore as Alex/);
     for (const path of [
       "/manifest.webmanifest",
       "/sw.js",
+      "/fonts/inter.ttf",
+      "/fonts/OFL.txt",
       "/icons/motive-192.png",
       "/icons/motive-512.png",
       "/icons/motive-apple.png",
@@ -84,6 +86,6 @@ test(
     const manifest = JSON.parse(
       await readFile("dist/client/manifest.webmanifest", "utf8"),
     );
-    assert.equal(manifest.theme_color, "#111113");
+    assert.equal(manifest.theme_color, "#141516");
   },
 );
