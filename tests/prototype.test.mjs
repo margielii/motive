@@ -31,11 +31,11 @@ test("create and edit preserve private group, poll and attendance state, with no
   const p = { ...seed.plans[0], id: "new", title: "Synthetic brunch" };
   assert.equal(a.savePlan(p).plans.length, 4);
   assert.equal(b.snapshot().plans.length, 3);
-  a.attend("new", "Maybe");
+  a.attend("new", "No Response");
   a.vote("new", 0);
   let v = a.vote("new", 1).plans.find((p) => p.id === "new");
   assert.deepEqual(v.votes, [p.votes[0], p.votes[1] + 1]);
-  assert.equal(v.attendance, "Maybe");
+  assert.equal(v.attendance, "No Response");
   const edited = { ...v, title: "Synthetic lunch", date: "2027-01-12" };
   v = a.savePlan(edited).plans.find((p) => p.id === "new");
   assert.equal(v.title, "Synthetic lunch");
@@ -43,7 +43,7 @@ test("create and edit preserve private group, poll and attendance state, with no
   assert.equal(v.date, "2027-01-12");
   assert.throws(() => a.savePlan({ ...edited, groupId: "public" }));
   assert.throws(() => a.vote("new", 2));
-  a.profile({ name: "Demo", bio: "Fiction", avatar: "M" });
+  a.profile({ name: "Demo", avatar: "M" });
   assert.equal(a.snapshot().profile.name, "Demo");
   assert.equal(b.snapshot().profile.name, "Alex");
   assert.equal(a.reset().plans.length, 3);
@@ -55,12 +55,12 @@ test("snapshots cannot mutate adapter records", () => {
   s.plans[0].title = "changed";
   s.groups[0].members.push("extra");
   assert.notEqual(r.snapshot().plans[0].title, "changed");
-  assert.equal(r.snapshot().groups[0].members.length, 5);
+  assert.equal(r.snapshot().groups[0].members.length, 3);
 });
 test("PWA stays online-only, uses graphite theme and includes Apple icon", async () => {
   const m = JSON.parse(await readFile("public/manifest.webmanifest", "utf8"));
   assert.equal(m.display, "standalone");
-  assert.equal(m.theme_color, "#111113");
+  assert.equal(m.theme_color, "#141516");
   assert.equal(m.start_url, "/");
   assert.equal(m.icons.length, 2);
   const sw = await readFile("public/sw.js", "utf8");

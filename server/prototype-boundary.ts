@@ -7,6 +7,7 @@ export function prototypeBoundary(request: Request): Response | null {
     path === "/manifest.webmanifest" ||
     path === "/sw.js" ||
     path === "/favicon.svg" ||
+    /^\/fonts\/(inter\.ttf|OFL\.txt)$/.test(path) ||
     /^\/icons\/motive-(192|512|apple)\.png$/.test(path) ||
     path.startsWith("/_next/static/");
   if (asset && ["GET", "HEAD"].includes(request.method)) return null;

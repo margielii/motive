@@ -46,3 +46,7 @@ Organizer-managed Motives and Groups; invitees can respond, vote, suggest if ena
 ## Critical stop conditions
 No working Codex/Sites execution surface; unclear target branch; failing tests; unresolved authentication/security requirements; unknown Site audience; artifact mismatch; no reliable rollback or identity verification; deployment requiring broadened access. Record blocker and stop that stage; do not substitute speculative workarounds.
 
+
+## Superseding owner scope correction
+
+https://github.com/margielii/motive/issues/3#issuecomment-6694986291 explicitly defers real authentication, registration, invitation-link issuance/redemption, notification delivery/backend and associated credential/logging protections. Implement the owner-only UI with synthetic local interactions. Missing browser QA is a documented limitation, not a development/merge gate. Investigate supported Sites packaging; stop only publication if artifact/rollback/audience/integrity gates remain unverified. Existing implementation/merge/private-publication authorization remains in force.

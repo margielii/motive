@@ -1,0 +1,72 @@
+
+> site-creator-vinext-starter@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ option meaning edits preserve unaffected ballot choices and notify only affected voters (4.865676ms)
+✔ removing a voted option retains unaffected votes, consolidates revote notices and rejects forged counts (1.319122ms)
+✔ poll replacement, multi-choice denominator, zero results, manual/deadline close and explicit outcome (1.536271ms)
+✔ creator controls, participant suggestions, draft privacy, attendance and cancellation (2.060678ms)
+✔ own availability only, date ranges/hours/weekly propagation, authorized group aggregation (1.286371ms)
+✔ group creation, immutable snapshots, draft publication, role isolation and notice read state (0.982559ms)
+✔ single-choice ties remain undecided; local notices consolidate and preserve chronological order (0.73374ms)
+✔ recurring Motive calendar dates share one record without phantom invalid monthly dates (0.635295ms)
+✔ PBKDF2 uses unique salts and validates only the correct password (887.718136ms)
+✔ unsigned, forged, legacy and wrong-origin requests cannot initialize (1382.983068ms)
+▶ native approval is mandatory and scoped, expiring and immutable under the signature
+  ✔ missing (3902.576086ms)
+  ✔ malformed (4044.44813ms)
+  ✔ legacyOnly (3739.708253ms)
+  ✔ expired (6572.55592ms)
+  ✔ overlong (3587.926515ms)
+  ✔ future (3605.098852ms)
+  ✔ changedRecipient (6553.0351ms)
+  ✔ changedTarget (3603.913434ms)
+  ✔ changedHash (3570.618358ms)
+  ✔ changedKey (6601.848302ms)
+✔ native approval is mandatory and scoped, expiring and immutable under the signature (45784.145866ms)
+✔ bootstrap HTTP exchange discloses no password, invitation, verifier or private signing key even under full capture (3537.388743ms)
+✔ first invitation retains least privilege; diagnostics require an active admin session (791.084343ms)
+✔ concurrent requests have one winner, and deleted accounts or a new signed approval cannot reset the ledger (3760.764864ms)
+▶ missing bindings and schema have safe phase codes, no raw errors or private data
+  ✔ DB (3329.285619ms)
+  ✔ BUCKET (441.089443ms)
+  ✔ schema (3360.286518ms)
+✔ missing bindings and schema have safe phase codes, no raw errors or private data (7131.691477ms)
+✔ migration compatibility preserves baseline data and refuses populated database adoption (3538.767188ms)
+✔ D1 partial failure rolls back ledger/admin/invitation, preserves matching R2 reservation, and allows exact retry (3537.938222ms)
+▶ occupied or conflicting R2 storage is never adopted or overwritten
+  ✔ occupied (503.501393ms)
+  ✔ conflict (3508.581211ms)
+✔ occupied or conflicting R2 storage is never adopted or overwritten (4012.651033ms)
+✔ wrong stage, instance, missing claims or configuration deny private routes even with a valid admin cookie (7103.9339ms)
+✔ separate instances reject copied cookies and expose no shared R2 object (7060.331823ms)
+✔ tokens are random 256-bit values and only hashes are looked up (9.294157ms)
+✔ grant denies wrong resource, action, expiry and revocation (0.447692ms)
+✔ missing, malformed and nonfinite grants fail closed at expiry boundaries (0.301157ms)
+✔ offline helper writes exclusive private bundle outside checkout, prints no credentials, and signs the exact intent (351.27393ms)
+﹣ emitted prototype Worker serves shell/PWA and rejects every server operation (0.780528ms) # SKIP
+✔ synthetic session is explicit, isolated and can end without credentials (1.559774ms)
+✔ create and edit preserve private group, poll and attendance state, with no shared persistence (3.798437ms)
+✔ snapshots cannot mutate adapter records (0.397087ms)
+✔ PWA stays online-only, uses graphite theme and includes Apple icon (5.625385ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ default deny, spoofed identity, CSRF and unknown methods (31.580692ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (834.514715ms)
+  ✔ expired invitations and weak passwords cannot register (118.153599ms)
+  ✔ separate group and plan membership; viewer cannot write (82.989293ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (78.484469ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (81.342384ms)
+  ✔ expiry denies redemption and existing guest/account sessions (66.118567ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (28.128266ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (441.424047ms)
+  ✔ persistent rate limits reject repeated authentication attempts (952.766278ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (297.555831ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (3656.14949ms)
+ℹ tests 56
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 95851.944546

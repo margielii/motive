@@ -1,3 +1,7 @@
+# Current prototype scope — Issue #3 correction
+
+The owner-approved correction at https://github.com/margielii/motive/issues/3#issuecomment-6694986291 supersedes earlier development/approval stop language below. Real account infrastructure is deferred; missing browser coverage is documented and does not block development or merge. See [current implementation and verification](verification/approved-prototype-release.md) for the implemented synthetic flows, limitations and publication handoff. The earlier sections below are retained historical baseline documentation.
+
 # MOTIVE usable Sites prototype
 
 Development branch: `prototype/usable-sites`, created directly from verified foundation `faf7e92cd752cb0854ec68418a32014276aa472c`. PR #1 and `foundation/poc` remain unchanged and unmerged. This is a stacked draft targeting `foundation/poc` so reviewers see only prototype changes, with no implication that the foundation is ready to merge.
