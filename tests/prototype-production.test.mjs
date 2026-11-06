@@ -55,22 +55,25 @@ test(
         "night",
         "dinner",
       ].map((name) => `/brand/${name}-reference.png`),
-    ])
-      assert.equal(
-        (await mf.dispatchFetch("https://motive.test" + path)).status,
-        200,
-        path,
+    ]) {
+      const response = await mf.dispatchFetch("https://motive.test" + path);
+      assert.equal(response.status, 200, path);
+      assert.deepEqual(
+        Buffer.from(await response.arrayBuffer()),
+        await readFile("dist/client" + path),
+        path + " must deliver the packaged asset bytes",
       );
+    }
     const chunks = await readdir("dist/client/_next/static/chunks");
     const script = chunks.find((p) => p.startsWith("page-"));
     assert.ok(script);
-    assert.equal(
-      (
-        await mf.dispatchFetch(
-          "https://motive.test/_next/static/chunks/" + script,
-        )
-      ).status,
-      200,
+    const scriptResponse = await mf.dispatchFetch(
+      "https://motive.test/_next/static/chunks/" + script,
+    );
+    assert.equal(scriptResponse.status, 200);
+    assert.deepEqual(
+      Buffer.from(await scriptResponse.arrayBuffer()),
+      await readFile("dist/client/_next/static/chunks/" + script),
     );
     for (const path of [
       "/api/auth/login",
@@ -95,6 +98,10 @@ test(
         assert.equal(r.status, 404, method + " " + path);
         assert.equal(r.headers.get("set-cookie"), null);
         assert.equal(r.headers.get("cache-control"), "private, no-store");
+        assert.equal(
+          (await r.json()).error,
+          "Synthetic prototype: server operations disabled",
+        );
       }
     const manifest = JSON.parse(
       await readFile("dist/client/manifest.webmanifest", "utf8"),
