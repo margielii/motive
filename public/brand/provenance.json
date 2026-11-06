@@ -1,0 +1,79 @@
+[
+  {
+    "asset": "wordmark-reference.png",
+    "reference": "1-Photo-1.jpg",
+    "crop": [
+      302,
+      698,
+      644,
+      777
+    ],
+    "reference_sha256": "e8654fd5600dbbd391ce63e0119e2c3e8e3338020591a5891e97c45bc95924a5"
+  },
+  {
+    "asset": "icon-reference.png",
+    "reference": "1-Photo-1.jpg",
+    "crop": [
+      52,
+      676,
+      195,
+      820
+    ],
+    "reference_sha256": "e8654fd5600dbbd391ce63e0119e2c3e8e3338020591a5891e97c45bc95924a5"
+  },
+  {
+    "asset": "seats-reference.png",
+    "reference": "8-Photo-8.jpg",
+    "crop": [
+      40,
+      211,
+      114,
+      285
+    ],
+    "reference_sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  },
+  {
+    "asset": "hoops-reference.png",
+    "reference": "8-Photo-8.jpg",
+    "crop": [
+      40,
+      322,
+      114,
+      396
+    ],
+    "reference_sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  },
+  {
+    "asset": "controller-reference.png",
+    "reference": "8-Photo-8.jpg",
+    "crop": [
+      40,
+      432,
+      114,
+      506
+    ],
+    "reference_sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  },
+  {
+    "asset": "night-reference.png",
+    "reference": "8-Photo-8.jpg",
+    "crop": [
+      40,
+      541,
+      114,
+      615
+    ],
+    "reference_sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  },
+  {
+    "asset": "dinner-reference.png",
+    "reference": "8-Photo-8.jpg",
+    "crop": [
+      378,
+      580,
+      438,
+      639
+    ],
+    "reference_sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  }
+]

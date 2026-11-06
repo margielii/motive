@@ -1,0 +1,47 @@
+[
+  {
+    "file": "01-brand-core.jpg",
+    "source_attachment": "1-Photo-1.jpg",
+    "sha256": "e8654fd5600dbbd391ce63e0119e2c3e8e3338020591a5891e97c45bc95924a5"
+  },
+  {
+    "file": "02-core-components.jpg",
+    "source_attachment": "2-Photo-2.jpg",
+    "sha256": "c465921ab4bbc5d8e524fe3140aa02b39c7b6b872045629b252a4f5ab91e10aa"
+  },
+  {
+    "file": "03-profile-friends.jpg",
+    "source_attachment": "3-Photo-3.jpg",
+    "sha256": "c3ea77d06e4d2f531c3ac66f785829001b4212e0910cc6014af4cbe005825fe0"
+  },
+  {
+    "file": "04-motive-sections.jpg",
+    "source_attachment": "4-Photo-4.jpg",
+    "sha256": "e69ed046c1346db79772138409c0aeca38377849de4bf3fe81736cbeed2ff5e6"
+  },
+  {
+    "file": "05-poll-flows.jpg",
+    "source_attachment": "5-Photo-5.jpg",
+    "sha256": "e1b421b05a63b6b20d2f9286839bf2c7cf3ac51241398a1b4aa65a0085c72ed5"
+  },
+  {
+    "file": "06-calendar-creation.jpg",
+    "source_attachment": "6-Photo-6.jpg",
+    "sha256": "8e3ed83e7215b3ffd1a11b87ca4adf1a8fe7ba6aad15df5f002f686d6d6d442e"
+  },
+  {
+    "file": "07-group-availability.jpg",
+    "source_attachment": "7-Photo-7.jpg",
+    "sha256": "c07f261bae54c90158ca90d3163af38cdd5ff5c36b6372713a3bf3e7edb47e45"
+  },
+  {
+    "file": "08-groups.jpg",
+    "source_attachment": "8-Photo-8.jpg",
+    "sha256": "2a66fea0e862daadfe1c9251b2633de13aa1d2b4003f6d21308db64bd06da18f"
+  },
+  {
+    "file": "09-hybrid-c-home.jpg",
+    "source_attachment": "9-Photo-9.jpg",
+    "sha256": "c5d6cd37e1ca0d1dd67d5654ca3ca56eb55053e4ae797110d099fa2013838e5b"
+  }
+]

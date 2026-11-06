@@ -5,7 +5,7 @@ export type Person = {
   username: string;
   avatar: string;
 };
-export type PollOption = { id: string; label: string };
+export type PollOption = { id: string; label: string; suggestedBy?: string };
 export type Poll = {
   id: string;
   planId: string;
@@ -15,6 +15,7 @@ export type Poll = {
   multiple: boolean;
   suggestions: boolean;
   deadline: string;
+  resultsBeforeVoting?: boolean;
   closed: boolean;
   options: PollOption[];
   ballots: Record<string, string[]>;
@@ -38,6 +39,7 @@ export type Plan = {
   draft: boolean;
   category: string;
   recurrence: string;
+  reminder?: string;
   artwork: string;
   kind: "Motive" | "Event";
 };
@@ -80,6 +82,7 @@ export type Snapshot = {
   notifications: Notice[];
   friends: string[];
   requests: string[];
+  sentRequests?: string[];
 };
 export interface PlanRepository {
   snapshot(): Snapshot;
@@ -87,6 +90,7 @@ export interface PlanRepository {
   attend(id: string, value: Attendance): Snapshot;
   vote(id: string, option: number): Snapshot;
   profile(value: Profile): Snapshot;
+  requestFriend(username: string): Snapshot;
   reset(): Snapshot;
   setActor(id: string): void;
   saveGroup(group: Group): Snapshot;

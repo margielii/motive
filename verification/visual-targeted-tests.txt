@@ -1,0 +1,22 @@
+✔ option meaning edits preserve unaffected ballot choices and notify only affected voters (4.672983ms)
+✔ removing a voted option retains unaffected votes, consolidates revote notices and rejects forged counts (1.399814ms)
+✔ poll replacement, multi-choice denominator, zero results, manual/deadline close and explicit outcome (1.541832ms)
+✔ creator controls, participant suggestions, draft privacy, attendance and cancellation (1.985827ms)
+✔ own availability only, date ranges/hours/weekly propagation, authorized group aggregation (1.390296ms)
+✔ group creation, immutable snapshots, draft publication, role isolation and notice read state (1.021181ms)
+✔ single-choice ties remain undecided; local notices consolidate and preserve chronological order (0.744712ms)
+✔ recurring Motive calendar dates share one record without phantom invalid monthly dates (0.309953ms)
+✔ reference UI settings survive edits without resetting ballots or attendance (0.930942ms)
+✔ synthetic friend requests validate identity, deduplicate, and remain session-local (1.48814ms)
+✔ synthetic session is explicit, isolated and can end without credentials (1.000292ms)
+✔ create and edit preserve private group, poll and attendance state, with no shared persistence (4.233997ms)
+✔ snapshots cannot mutate adapter records (0.372261ms)
+✔ PWA stays online-only, uses graphite theme and includes Apple icon (8.424722ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 218.159252
