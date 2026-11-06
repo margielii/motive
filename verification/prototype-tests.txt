@@ -1,0 +1,64 @@
+
+> site-creator-vinext-starter@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ PBKDF2 uses unique salts and validates only the correct password (706.145542ms)
+✔ unsigned, forged, legacy and wrong-origin requests cannot initialize (1481.709857ms)
+▶ native approval is mandatory and scoped, expiring and immutable under the signature
+  ✔ missing (4607.300633ms)
+  ✔ malformed (4351.881174ms)
+  ✔ legacyOnly (3656.42814ms)
+  ✔ expired (3670.208877ms)
+  ✔ overlong (3573.944055ms)
+  ✔ future (3698.925166ms)
+  ✔ changedRecipient (6837.885926ms)
+  ✔ changedTarget (3618.427575ms)
+  ✔ changedHash (3573.354483ms)
+  ✔ changedKey (6582.238195ms)
+✔ native approval is mandatory and scoped, expiring and immutable under the signature (44175.124656ms)
+✔ bootstrap HTTP exchange discloses no password, invitation, verifier or private signing key even under full capture (3512.745485ms)
+✔ first invitation retains least privilege; diagnostics require an active admin session (1075.767775ms)
+✔ concurrent requests have one winner, and deleted accounts or a new signed approval cannot reset the ledger (4247.315912ms)
+▶ missing bindings and schema have safe phase codes, no raw errors or private data
+  ✔ DB (3315.906423ms)
+  ✔ BUCKET (396.263656ms)
+  ✔ schema (3337.577728ms)
+✔ missing bindings and schema have safe phase codes, no raw errors or private data (7050.75917ms)
+✔ migration compatibility preserves baseline data and refuses populated database adoption (461.552531ms)
+✔ D1 partial failure rolls back ledger/admin/invitation, preserves matching R2 reservation, and allows exact retry (3490.747763ms)
+▶ occupied or conflicting R2 storage is never adopted or overwritten
+  ✔ occupied (445.97667ms)
+  ✔ conflict (3504.954279ms)
+✔ occupied or conflicting R2 storage is never adopted or overwritten (3951.534588ms)
+✔ wrong stage, instance, missing claims or configuration deny private routes even with a valid admin cookie (10097.041155ms)
+✔ separate instances reject copied cookies and expose no shared R2 object (4269.815754ms)
+✔ tokens are random 256-bit values and only hashes are looked up (9.39762ms)
+✔ grant denies wrong resource, action, expiry and revocation (0.433893ms)
+✔ missing, malformed and nonfinite grants fail closed at expiry boundaries (0.251329ms)
+✔ offline helper writes exclusive private bundle outside checkout, prints no credentials, and signs the exact intent (327.613008ms)
+﹣ emitted prototype Worker serves shell/PWA and rejects every server operation (0.965874ms) # SKIP
+✔ synthetic session is explicit, isolated and can end without credentials (0.917281ms)
+✔ create and edit preserve private group, poll and attendance state, with no shared persistence (2.516509ms)
+✔ snapshots cannot mutate adapter records (0.209215ms)
+✔ PWA stays online-only, uses graphite theme and includes Apple icon (6.978628ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ default deny, spoofed identity, CSRF and unknown methods (29.88415ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (759.857141ms)
+  ✔ expired invitations and weak passwords cannot register (111.067123ms)
+  ✔ separate group and plan membership; viewer cannot write (72.020322ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (79.177879ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (89.625852ms)
+  ✔ expiry denies redemption and existing guest/account sessions (61.064655ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (24.694155ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (410.75981ms)
+  ✔ persistent rate limits reject repeated authentication attempts (932.844178ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (272.294677ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (6421.998098ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 93753.719214
