@@ -1,0 +1,15 @@
+
+> site-creator-vinext-starter@0.1.0 test:production
+> MOTIVE_BUILT_WORKER=1 node --test tests/prototype-production.test.mjs
+
+Production integration: constructing Miniflare
+Production integration: requesting shell
+✔ emitted prototype Worker serves shell/PWA and rejects every server operation (515.639104ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 820.484541

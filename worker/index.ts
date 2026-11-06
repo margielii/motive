@@ -1,11 +1,11 @@
-import { boundary } from "../server/boundary";
+import { prototypeBoundary } from "../server/prototype-boundary";
 import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 const worker = {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
-    const guarded = await boundary(request, env);
+    const guarded = prototypeBoundary(request);
     if (guarded) return guarded;
     // Serve only the boundary's allowlisted public files through the asset binding.
     if (new URL(request.url).pathname !== "/" && env.ASSETS) {
