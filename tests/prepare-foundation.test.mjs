@@ -1,0 +1,27 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {mkdtemp,writeFile,readFile,stat,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {resolve} from 'node:path';
+import {createHash,webcrypto} from 'node:crypto';
+import {serializeBootstrapIntent} from '../lib/bootstrap-intent.mjs';
+const execute=promisify(execFile);
+test('offline helper writes exclusive private bundle outside checkout, prints no credentials, and signs the exact intent',async t=>{
+ const directory=await mkdtemp(resolve(tmpdir(),'motive-private-test-'));t.after(()=>rm(directory,{recursive:true,force:true}));
+ const hosting=JSON.parse(await readFile('.openai/hosting.json','utf8'));
+ const input=resolve(directory,'instance.json'),output=resolve(directory,'private.json');
+ await writeFile(input,JSON.stringify({siteId:hosting.project_id,instanceId:crypto.randomUUID(),stage:'local'}));
+ const args=['scripts/prepare-foundation.mjs',input,'admin@example.test','invitee@example.test',output];
+ const {stdout,stderr}=await execute(process.execPath,args);const bundle=JSON.parse(await readFile(output,'utf8')),plan=JSON.parse(bundle.runtimeValue.value);
+ assert.equal((await stat(output)).mode&0o777,0o600);assert.equal(stderr,'');
+ for(const value of [bundle.privateCredentials.password,bundle.privateCredentials.invitationCode,plan.passwordHash,plan.invitationHash,bundle.request.body.signature])assert.equal(stdout.includes(value),false);
+ assert.deepEqual(Object.keys(bundle.request.headers),['Content-Type']);assert.deepEqual(Object.keys(bundle.request.body).sort(),['operationId','signature','version']);
+ assert.equal(bundle.runtimeValue.is_secret,true);assert.equal(plan.invitationHash,createHash('sha256').update(bundle.privateCredentials.invitationCode).digest('hex'));
+ assert.equal(plan.expiresAt-plan.issuedAt,1800000);assert.equal(plan.publicKey.d,undefined);assert.equal(JSON.stringify(bundle).includes('PRIVATE KEY'),false);
+ const key=await webcrypto.subtle.importKey('jwk',plan.publicKey,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+ assert.equal(await webcrypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,Buffer.from(bundle.request.body.signature,'hex'),new TextEncoder().encode(serializeBootstrapIntent(plan))),true);
+ await assert.rejects(execute(process.execPath,args));
+ await assert.rejects(execute(process.execPath,[...args.slice(0,-1),resolve('outputs','forbidden-private.json')]));
+});

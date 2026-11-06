@@ -1,0 +1,113 @@
+MOTIVE local verification — 2026-11-06 UTC
+Baseline: 1573581519f83bf23fc537b9bea1bfd12c91572d
+Node: 24.22.1
+Local only; no hosted deployment or iPhone test.
+
+
+$ npm run typecheck
+
+> site-creator-vinext-starter@0.1.0 typecheck
+> tsc --noEmit
+
+
+
+$ npm run lint
+
+> site-creator-vinext-starter@0.1.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+
+$ npm test
+
+> site-creator-vinext-starter@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ PBKDF2 uses unique salts and validates only the correct password (326.838573ms)
+✔ tokens are random 256-bit values and only hashes are looked up (7.564218ms)
+✔ grant denies wrong resource, action, expiry and revocation (0.445512ms)
+✔ missing, malformed and nonfinite grants fail closed at expiry boundaries (0.153918ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ default deny, spoofed identity, CSRF and unknown methods (20.307203ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (663.355242ms)
+  ✔ expired invitations and weak passwords cannot register (90.742577ms)
+  ✔ separate group and plan membership; viewer cannot write (58.896991ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (52.184401ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (34.324766ms)
+  ✔ expiry denies redemption and existing guest/account sessions (57.247257ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (25.611663ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (335.826405ms)
+  ✔ persistent rate limits reject repeated authentication attempts (758.583657ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (229.672607ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (2723.513321ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3388.505042
+
+
+$ npm run build (last 24 lines)
+[4/5] build client environment...
+
+transforming...✓ 139 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 483ms
+[5/5] build ssr environment...
+
+transforming...✓ 133 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 344ms
+
+  Route (app)
+  ─ ? /
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+$ npm run test:production
+
+> site-creator-vinext-starter@0.1.0 test:production
+> MOTIVE_BUILT_WORKER=1 node --test tests/security.test.mjs
+
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ production assets, manifest and PWA are reachable without private records (213.210115ms)
+  ✔ default deny, spoofed identity, CSRF and unknown methods (54.1434ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (676.239086ms)
+  ✔ expired invitations and weak passwords cannot register (91.689722ms)
+  ✔ separate group and plan membership; viewer cannot write (55.097586ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (61.481411ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (71.24139ms)
+  ✔ expiry denies redemption and existing guest/account sessions (42.483512ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (15.802978ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (339.836401ms)
+  ✔ persistent rate limits reject repeated authentication attempts (770.362354ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (293.296383ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (2919.55154ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3139.449709
+
+
+$ npm run check:package
+
+> site-creator-vinext-starter@0.1.0 check:package
+> node scripts/check-package.mjs
+
+PASS: Sites manifest, bindings, worker-first assets, migration journal/SQL and PWA assets match build output. Hosted archive acceptance is unverified.

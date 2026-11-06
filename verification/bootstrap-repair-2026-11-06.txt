@@ -1,0 +1,175 @@
+MOTIVE bootstrap transport repair — 2026-11-06 UTC
+Baseline: 4a2b9cbc05a889a6748cb66916014d186ebbfa05
+Preserved independent report commit: ecbe12c2b85a69b4db80121aa1226a35556a5481 (documentation only; not hosted incident evidence)
+Node: 24.22.1
+No hosted logs, exposed credential or runtime values retrieved. No hosted changes.
+Hosted revision-2 observations come only from the user-supplied sanitized context.
+Original HTTP 503 root cause remains unverified; no hosted reproduction attempted.
+
+
+$ npm run typecheck
+
+> site-creator-vinext-starter@0.1.0 typecheck
+> tsc --noEmit
+
+
+
+$ npm run lint
+
+> site-creator-vinext-starter@0.1.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+
+$ npm test
+
+> site-creator-vinext-starter@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ PBKDF2 uses unique salts and validates only the correct password (332.773007ms)
+✔ unsigned, forged, legacy and wrong-origin requests cannot initialize (527.29286ms)
+▶ native approval is mandatory and scoped, expiring and immutable under the signature
+  ✔ missing (3481.215935ms)
+  ✔ malformed (3549.092831ms)
+  ✔ legacyOnly (6494.59731ms)
+  ✔ expired (3466.451745ms)
+  ✔ overlong (3490.047334ms)
+  ✔ future (6467.065158ms)
+  ✔ changedRecipient (3459.565334ms)
+  ✔ changedTarget (3464.467941ms)
+  ✔ changedHash (6463.202775ms)
+  ✔ changedKey (3465.018268ms)
+✔ native approval is mandatory and scoped, expiring and immutable under the signature (43803.007843ms)
+✔ bootstrap HTTP exchange discloses no password, invitation, verifier or private signing key even under full capture (3421.119174ms)
+✔ first invitation retains least privilege; diagnostics require an active admin session (600.984658ms)
+✔ concurrent requests have one winner, and deleted accounts or a new signed approval cannot reset the ledger (6600.852852ms)
+▶ missing bindings and schema have safe phase codes, no raw errors or private data
+  ✔ DB (286.802475ms)
+  ✔ BUCKET (3368.678937ms)
+  ✔ schema (305.291391ms)
+✔ missing bindings and schema have safe phase codes, no raw errors or private data (3961.494363ms)
+✔ migration compatibility preserves baseline data and refuses populated database adoption (3420.749584ms)
+✔ D1 partial failure rolls back ledger/admin/invitation, preserves matching R2 reservation, and allows exact retry (446.401917ms)
+▶ occupied or conflicting R2 storage is never adopted or overwritten
+  ✔ occupied (3400.809284ms)
+  ✔ conflict (428.527312ms)
+✔ occupied or conflicting R2 storage is never adopted or overwritten (3829.881845ms)
+✔ wrong stage, instance, missing claims or configuration deny private routes even with a valid admin cookie (12948.640653ms)
+✔ separate instances reject copied cookies and expose no shared R2 object (3893.502815ms)
+✔ tokens are random 256-bit values and only hashes are looked up (7.382138ms)
+✔ grant denies wrong resource, action, expiry and revocation (0.385612ms)
+✔ missing, malformed and nonfinite grants fail closed at expiry boundaries (0.167999ms)
+✔ offline helper writes exclusive private bundle outside checkout, prints no credentials, and signs the exact intent (291.474484ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ default deny, spoofed identity, CSRF and unknown methods (25.110946ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (707.059713ms)
+  ✔ expired invitations and weak passwords cannot register (102.70859ms)
+  ✔ separate group and plan membership; viewer cannot write (80.33345ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (63.801199ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (63.757359ms)
+  ✔ expiry denies redemption and existing guest/account sessions (55.936194ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (22.622993ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (377.524862ms)
+  ✔ persistent rate limits reject repeated authentication attempts (784.821921ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (240.007968ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (3045.608462ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89312.887977
+
+
+$ npm run build (last 24 lines)
+[4/5] build client environment...
+
+transforming...✓ 139 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 480ms
+[5/5] build ssr environment...
+
+transforming...✓ 133 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 359ms
+
+  Route (app)
+  ─ ? /
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+$ npm run test:production
+
+> site-creator-vinext-starter@0.1.0 test:production
+> MOTIVE_BUILT_WORKER=1 node --test tests/security.test.mjs tests/foundation.test.mjs
+
+✔ unsigned, forged, legacy and wrong-origin requests cannot initialize (605.501421ms)
+▶ native approval is mandatory and scoped, expiring and immutable under the signature
+  ✔ missing (3617.094584ms)
+  ✔ malformed (3612.718207ms)
+  ✔ legacyOnly (3636.065965ms)
+  ✔ expired (6619.499827ms)
+  ✔ overlong (3622.183589ms)
+  ✔ future (3785.072988ms)
+  ✔ changedRecipient (6672.12939ms)
+  ✔ changedTarget (3603.138372ms)
+  ✔ changedHash (3619.364193ms)
+  ✔ changedKey (6615.949551ms)
+✔ native approval is mandatory and scoped, expiring and immutable under the signature (45405.251757ms)
+✔ bootstrap HTTP exchange discloses no password, invitation, verifier or private signing key even under full capture (498.14458ms)
+✔ first invitation retains least privilege; diagnostics require an active admin session (3650.787129ms)
+✔ concurrent requests have one winner, and deleted accounts or a new signed approval cannot reset the ledger (3737.728466ms)
+▶ missing bindings and schema have safe phase codes, no raw errors or private data
+  ✔ DB (358.555103ms)
+  ✔ BUCKET (3427.482741ms)
+  ✔ schema (3382.501963ms)
+✔ missing bindings and schema have safe phase codes, no raw errors or private data (7169.435066ms)
+✔ migration compatibility preserves baseline data and refuses populated database adoption (486.979362ms)
+✔ D1 partial failure rolls back ledger/admin/invitation, preserves matching R2 reservation, and allows exact retry (3495.748786ms)
+▶ occupied or conflicting R2 storage is never adopted or overwritten
+  ✔ occupied (487.231134ms)
+  ✔ conflict (3487.72557ms)
+✔ occupied or conflicting R2 storage is never adopted or overwritten (3975.693869ms)
+✔ wrong stage, instance, missing claims or configuration deny private routes even with a valid admin cookie (7372.868468ms)
+✔ separate instances reject copied cookies and expose no shared R2 object (7035.3557ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ production assets, manifest and PWA are reachable without private records (221.74356ms)
+  ✔ default deny, spoofed identity, CSRF and unknown methods (59.821382ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (720.849952ms)
+  ✔ expired invitations and weak passwords cannot register (94.096091ms)
+  ✔ separate group and plan membership; viewer cannot write (65.035443ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (114.665627ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (56.234067ms)
+  ✔ expiry denies redemption and existing guest/account sessions (47.912214ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (18.258084ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (388.371909ms)
+  ✔ persistent rate limits reject repeated authentication attempts (790.270738ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (3329.533587ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (6265.202484ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93358.985244
+
+
+$ npm run check:package
+
+> site-creator-vinext-starter@0.1.0 check:package
+> node scripts/check-package.mjs
+
+PASS: Sites manifest, bindings, worker-first assets, migration journal/SQL and PWA assets match build output. Hosted archive acceptance is unverified.

@@ -1,0 +1,165 @@
+MOTIVE infrastructure unblocking — 2026-11-06 UTC
+Baseline: bc5357f7d6e4ec7405f67db95c9fb910a27742bf
+Node: 24.22.1
+No provisioning, runtime mutation, deployment, publication, hosted bootstrap or Orbit access.
+
+Sanitized native read-only observations:
+get_site: existing MOTIVE Site, version 0, no live URL, custom audience, requires_byop=false.
+get_environment_variables: revision 0, entries=[]; no secret values retained.
+No actual physical DB/R2 allocation or remaining account quotas established.
+
+
+$ npm run typecheck
+
+> site-creator-vinext-starter@0.1.0 typecheck
+> tsc --noEmit
+
+
+
+$ npm run lint
+
+> site-creator-vinext-starter@0.1.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+
+$ npm test
+
+> site-creator-vinext-starter@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ PBKDF2 uses unique salts and validates only the correct password (329.431104ms)
+✔ bootstrap rejects anonymous, forged headers, wrong token, wrong origin and missing confirmation (447.469369ms)
+▶ bootstrap requires deliberate, valid runtime arming; missing/expired/overlong permit cannot initialize
+  ✔ missing (3405.250353ms)
+  ✔ malformed (3368.227698ms)
+  ✔ expired (6374.258381ms)
+  ✔ long (3392.478884ms)
+  ✔ future (3451.296359ms)
+  ✔ wrongSite (6399.795012ms)
+  ✔ missingInstance (3390.664243ms)
+✔ bootstrap requires deliberate, valid runtime arming; missing/expired/overlong permit cannot initialize (29783.420562ms)
+▶ diagnostics are authorized, read-only and non-sensitive, including missing bindings
+  ✔ DB (3194.588485ms)
+  ✔ BUCKET (271.206885ms)
+  ✔ uninitialized (3304.212767ms)
+✔ diagnostics are authorized, read-only and non-sensitive, including missing bindings (6770.817769ms)
+✔ append-only migration preserves baseline data and refuses takeover of an occupied database (3335.817926ms)
+✔ bootstrap atomically creates one admin and a least-privilege first invitation (3722.62038ms)
+✔ concurrent initialization has one winner; new permits and deleted accounts cannot reset the ledger (3518.72766ms)
+✔ R2 reservation survives a failed D1 batch without a partial admin and supports same-target retry (3491.079942ms)
+✔ an unclaimed bucket containing existing objects is not adopted (402.53988ms)
+✔ conflicting bucket reservation is never overwritten (3313.329469ms)
+✔ wrong stage, wrong instance, absent markers and unconfigured runtime fail closed before private data (9908.082971ms)
+✔ separate emulator instances have separate D1/R2 claims and no shared account access (6958.875498ms)
+✔ tokens are random 256-bit values and only hashes are looked up (10.35485ms)
+✔ grant denies wrong resource, action, expiry and revocation (0.305273ms)
+✔ missing, malformed and nonfinite grants fail closed at expiry boundaries (0.149081ms)
+✔ offline foundation preparation emits unique target/permit, no default password, and no ready-to-run initialization (78.752334ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ default deny, spoofed identity, CSRF and unknown methods (21.866048ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (687.826581ms)
+  ✔ expired invitations and weak passwords cannot register (93.780602ms)
+  ✔ separate group and plan membership; viewer cannot write (61.627663ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (59.152619ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (54.305223ms)
+  ✔ expiry denies redemption and existing guest/account sessions (53.288329ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (20.448264ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (386.805747ms)
+  ✔ persistent rate limits reject repeated authentication attempts (815.500024ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (235.523491ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (2987.944679ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76996.386459
+
+
+$ npm run build (last 24 lines)
+[4/5] build client environment...
+
+transforming...✓ 139 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 524ms
+[5/5] build ssr environment...
+
+transforming...✓ 133 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 383ms
+
+  Route (app)
+  ─ ? /
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+$ npm run test:production
+
+> site-creator-vinext-starter@0.1.0 test:production
+> MOTIVE_BUILT_WORKER=1 node --test tests/security.test.mjs tests/foundation.test.mjs
+
+✔ bootstrap rejects anonymous, forged headers, wrong token, wrong origin and missing confirmation (510.295168ms)
+▶ bootstrap requires deliberate, valid runtime arming; missing/expired/overlong permit cannot initialize
+  ✔ missing (3540.631411ms)
+  ✔ malformed (3526.242866ms)
+  ✔ expired (6536.759993ms)
+  ✔ long (3524.443019ms)
+  ✔ future (3562.202018ms)
+  ✔ wrongSite (6540.363534ms)
+  ✔ missingInstance (3534.631277ms)
+✔ bootstrap requires deliberate, valid runtime arming; missing/expired/overlong permit cannot initialize (30766.618103ms)
+▶ diagnostics are authorized, read-only and non-sensitive, including missing bindings
+  ✔ DB (3283.560753ms)
+  ✔ BUCKET (399.617268ms)
+  ✔ uninitialized (3359.382184ms)
+✔ diagnostics are authorized, read-only and non-sensitive, including missing bindings (7043.341285ms)
+✔ append-only migration preserves baseline data and refuses takeover of an occupied database (458.019424ms)
+✔ bootstrap atomically creates one admin and a least-privilege first invitation (3983.863959ms)
+✔ concurrent initialization has one winner; new permits and deleted accounts cannot reset the ledger (6680.389226ms)
+✔ R2 reservation survives a failed D1 batch without a partial admin and supports same-target retry (3579.252652ms)
+✔ an unclaimed bucket containing existing objects is not adopted (463.440927ms)
+✔ conflicting bucket reservation is never overwritten (3369.317277ms)
+✔ wrong stage, wrong instance, absent markers and unconfigured runtime fail closed before private data (7275.292301ms)
+✔ separate emulator instances have separate D1/R2 claims and no shared account access (7033.219282ms)
+▶ MOTIVE D1/R2 authorization and lifecycle integration
+  ✔ production assets, manifest and PWA are reachable without private records (224.606029ms)
+  ✔ default deny, spoofed identity, CSRF and unknown methods (80.844865ms)
+  ✔ invitation registration, secure persistent session, replay, password hashing (693.603869ms)
+  ✔ expired invitations and weak passwords cannot register (104.914136ms)
+  ✔ separate group and plan membership; viewer cannot write (72.632225ms)
+  ✔ R2 actual-byte limits, signatures, authorized retrieval and ownership (80.196314ms)
+  ✔ guest atomic redemption replay, read scope, cross-plan denial, revocation (78.02824ms)
+  ✔ expiry denies redemption and existing guest/account sessions (60.188167ms)
+  ✔ image creator can delete; object disappears from D1 and R2 (24.101768ms)
+  ✔ administrator restriction and recovery invalidate sessions; recovery replay (364.045116ms)
+  ✔ persistent rate limits reject repeated authentication attempts (798.132858ms)
+  ✔ D1 account sessions and R2 bytes survive emulator restart (311.72889ms)
+✔ MOTIVE D1/R2 authorization and lifecycle integration (3223.718823ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76180.837524
+
+
+$ npm run check:package
+
+> site-creator-vinext-starter@0.1.0 check:package
+> node scripts/check-package.mjs
+
+PASS: Sites manifest, bindings, worker-first assets, migration journal/SQL and PWA assets match build output. Hosted archive acceptance is unverified.
