@@ -52,3 +52,26 @@ React best-practices review: top-level component definitions, per-instance repos
 Final validation: TypeScript PASS; ESLint PASS with zero warnings; full suite 57 PASS / 1 build-dependent SKIP; final targeted synthetic regression tests 14 PASS; final emitted-Worker integration 1 PASS; production build PASS; local package/binding/migration checks PASS; `git diff --check` PASS. The production command exercises the skipped build-dependent test. Its asset checks compare actual response bytes with the build files, consume response streams and verify the denial JSON, not just HTTP status. The full suite was reused after final presentation refinements; the final targeted tests, typecheck, lint, build and production integration cover the current application code. No dependency inputs, bindings or migrations changed.
 
 Application commit: `248a6487ba42b4ce0857a44a9695347e469218b8`. `visual-build-inventory.txt` records all local build files and checksums against that application source; subsequent review-evidence/test-only changes do not alter the application build. These hashes do not constitute a native archive checksum. This candidate is intentionally unmerged and unpublished pending visual acceptance and release gates.
+
+## Visual acceptance attempt — supported environment unavailable
+
+Resumed PR #5 at head `8579f1783d3112d700ac9767cd2d9c90a79f52ee` without restarting the audit or changing application code. The existing successful checks are reused.
+
+The managed runtime is running and reports a desktop/browser capability, but the active tool catalog exposes no browser-control or NodeREPL tool. Installed runtime files alone do not establish an accessible supported browser session. No alternate browser-control path was used.
+
+Owner iPhone preview fallback was attempted through the supported Sites CLI:
+
+```text
+sites-preview status
+sites-preview start /workspace/motive
+```
+
+Both failed with exit code 1:
+
+```text
+sites-preview: preview relay unavailable: No such file or directory (os error 2)
+```
+
+The CLI returned no preview URL. Therefore no accessible owner iPhone preview was established; the production Site is not a preview of PR #5. No independent server, public tunnel, alternate host, audience change or application workaround was introduced. The Sites troubleshooting instructions identify a missing preview relay/daemon/browser route as environment infrastructure to restore, not an application defect.
+
+All 17 visual comparisons remain pending. No screenshots or new material visual discrepancies are claimed. To continue, restore the supported browser/NodeREPL control surface for agent acceptance, or restore the Sites preview relay and an iPhone-accessible preview route for owner acceptance. Phase 2 remains unstarted: PR stays draft, no merge, no native packaging/archive recovery, no new Site version or deployment. MOTIVE production access and Orbit are untouched.
