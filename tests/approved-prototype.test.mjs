@@ -303,3 +303,39 @@ test("recurring Motive calendar dates share one record without phantom invalid m
   );
   assert.equal(motiveOnDate({ ...p, draft: true }, "2027-01-31"), false);
 });
+
+test("reference UI settings survive edits without resetting ballots or attendance", () => {
+  const r = createMockRepository();
+  const original = r.snapshot().plans[0];
+  r.attend(original.id, "Can't Go");
+  const saved = r
+    .savePlan({ ...original, reminder: "1 hour before", title: "Updated" })
+    .plans.find((p) => p.id === original.id);
+  assert.equal(saved.reminder, "1 hour before");
+  assert.equal(saved.responses.alex, "Can't Go");
+  const poll = r.snapshot().polls[0];
+  r.cast(poll.id, [poll.options[0].id]);
+  const withVisibility = r
+    .savePoll({ ...poll, resultsBeforeVoting: false })
+    .polls.find((p) => p.id === poll.id);
+  assert.equal(withVisibility.resultsBeforeVoting, false);
+  assert.deepEqual(withVisibility.ballots.alex, [poll.options[0].id]);
+  assert.deepEqual(withVisibility.ballots.sam, poll.ballots.sam);
+  const suggestion = r
+    .suggest(poll.id, "A new option")
+    .polls.find((p) => p.id === poll.id)
+    .options.at(-1);
+  assert.equal(suggestion.suggestedBy, "alex");
+});
+
+test("synthetic friend requests validate identity, deduplicate, and remain session-local", () => {
+  const r = createMockRepository();
+  assert.throws(() => r.requestFriend("unknown.demo"));
+  assert.throws(() => r.requestFriend("alex.demo"));
+  assert.throws(() => r.requestFriend("sam.demo"));
+  r.requestFriend("riley.demo");
+  assert.deepEqual(r.requestFriend("RILEY.DEMO").sentRequests, ["riley"]);
+  assert.equal(createMockRepository().snapshot().sentRequests, undefined);
+  r.setActor("sam");
+  assert.throws(() => r.requestFriend("riley.demo"));
+});

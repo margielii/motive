@@ -374,6 +374,20 @@ export function createMockRepository(): PlanRepository {
       p.vote = option;
       return snapshot();
     },
+    requestFriend(username) {
+      if (actor !== "alex")
+        throw new Error("Friend requests are an Alex-only demonstration");
+      const target = state.people.find(
+        (p) => p.username.toLowerCase() === username.toLowerCase(),
+      );
+      if (!target || target.id === actor)
+        throw new Error("Enter another fictional member's username");
+      if (state.friends.includes(target.id)) throw new Error("Already friends");
+      state.sentRequests = [
+        ...new Set([...(state.sentRequests ?? []), target.id]),
+      ];
+      return snapshot();
+    },
     profile(p) {
       if (!p.name.trim()) throw new Error("Display name is required");
       const person = state.people.find((p) => p.id === actor)!;
@@ -490,7 +504,11 @@ export function createMockRepository(): PlanRepository {
         )
       )
         throw new Error("Enter a new option");
-      p.options.push({ id: crypto.randomUUID(), label: label.trim() });
+      p.options.push({
+        id: crypto.randomUUID(),
+        label: label.trim(),
+        suggestedBy: actor,
+      });
       return snapshot();
     },
     closePoll(id) {

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   House,
@@ -13,6 +14,21 @@ import {
   X,
   Beer,
   HelpCircle,
+  Clapperboard,
+  CircleDot,
+  Utensils,
+  Gamepad2,
+  Dumbbell,
+  Pencil,
+  MapPin,
+  Clock,
+  Info,
+  Check,
+  ChevronRight,
+  BarChart3,
+  Search,
+  Mail,
+  Shield,
 } from "lucide-react";
 import {
   createMockRepository,
@@ -46,20 +62,93 @@ const categories = [
   "Dinner",
   "FIFA",
   "Gym",
-  "Drinks",
-  "Basketball",
-  "Tennis",
-  "Concert",
-  "Games",
-  "Coffee",
+  "Drink",
   "Other",
   "Custom",
 ];
+const categoryIcons: Record<string, typeof Beer> = {
+  Movie: Clapperboard,
+  Soccer: CircleDot,
+  Dinner: Utensils,
+  FIFA: Gamepad2,
+  Gym: Dumbbell,
+  Drink: Beer,
+  Drinks: Beer,
+  Other: MoreHorizontal,
+  Custom: Pencil,
+};
+function CategoryIcon({ category }: { category: string }) {
+  const Icon = categoryIcons[category] ?? Sparkles;
+  return <Icon size={22} aria-hidden="true" />;
+}
+function Avatar({
+  value,
+  className = "",
+}: {
+  value: string;
+  className?: string;
+}) {
+  return (
+    <span className={`avatar ${className}`}>
+      {value.startsWith("data:image/") ? (
+        <Image unoptimized src={value} alt="" width={110} height={110} />
+      ) : (
+        value
+      )}
+    </span>
+  );
+}
+function AvatarStack({ ids, data }: { ids: string[]; data: Snapshot }) {
+  return (
+    <span className="avatar-stack" aria-label={`${ids.length} members`}>
+      {ids.slice(0, 4).map((id) => (
+        <Avatar
+          key={id}
+          value={data.people.find((p) => p.id === id)?.avatar ?? "?"}
+        />
+      ))}
+      {ids.length > 4 && <span className="avatar">+{ids.length - 4}</span>}
+    </span>
+  );
+}
+function ImageUpload({ onChange }: { onChange: (value: string) => void }) {
+  const [error, setError] = useState("");
+  return (
+    <label>
+      Upload image
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          if (
+            !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+            file.size > 2 * 1024 * 1024
+          ) {
+            setError("Choose a PNG, JPEG or WebP under 2 MiB");
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            onChange(String(reader.result));
+            setError("");
+          };
+          reader.onerror = () => setError("Could not read image. Try again.");
+          reader.readAsDataURL(file);
+        }}
+      />
+      {error && <span role="alert">{error}</span>}
+    </label>
+  );
+}
 function Artwork({
   value = "red",
   className = "",
   children,
+  category,
 }: {
+  category?: string;
   value?: string;
   className?: string;
   children?: ReactNode;
@@ -70,12 +159,13 @@ function Artwork({
       style={
         value.startsWith("data:image/")
           ? { backgroundImage: `url("${value}")` }
-          : undefined
+          : category && ["Movie", "FIFA", "Dinner"].includes(category)
+            ? {
+                backgroundImage: `url("/brand/${category === "Movie" ? "seats" : category === "FIFA" ? "controller" : "dinner"}-reference.png")`,
+              }
+            : undefined
       }
     >
-      <span aria-hidden="true" className="art-symbol">
-        ✳
-      </span>
       {children}
     </div>
   );
@@ -182,7 +272,59 @@ function MotiveEditor({
 }) {
   const [p, setP] = useState(value);
   const [error, setError] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const update = (key: keyof Plan, v: string) => setP({ ...p, [key]: v });
+  if (categoryOpen)
+    return (
+      <Modal title="Category" close={() => setCategoryOpen(false)}>
+        <section className="category-options" aria-label="Category selection">
+          <div className="section-heading">
+            <span className="fine">Choose a category</span>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setCategoryOpen(false)}
+              aria-label="Close categories"
+            >
+              <X />
+            </button>
+          </div>
+          {categories.map((c) => (
+            <button
+              type="button"
+              className="setting-row"
+              aria-pressed={p.category === c}
+              key={c}
+              onClick={() => {
+                update("category", c);
+                if (c !== "Custom") setCategoryOpen(false);
+              }}
+            >
+              <CategoryIcon category={c} />
+              <strong>{c === "Custom" ? "Custom category" : c}</strong>
+              {p.category === c && <Check />}
+            </button>
+          ))}
+          {(p.category === "Custom" || !categories.includes(p.category)) && (
+            <label>
+              Custom category
+              <input
+                autoFocus
+                value={p.category === "Custom" ? "" : p.category}
+                onChange={(e) => update("category", e.target.value)}
+              />
+              <button
+                type="button"
+                className="primary"
+                onClick={() => setCategoryOpen(false)}
+              >
+                Done
+              </button>
+            </label>
+          )}
+        </section>
+      </Modal>
+    );
   return (
     <Modal
       title={
@@ -202,7 +344,6 @@ function MotiveEditor({
           }
         }}
       >
-        <p className="fine">Synthetic only · invitations stay in this tab.</p>
         <label>
           Title
           <input
@@ -212,26 +353,16 @@ function MotiveEditor({
             onChange={(e) => update("title", e.target.value)}
           />
         </label>
-        <label>
-          Category
-          <select
-            value={categories.includes(p.category) ? p.category : "Custom"}
-            onChange={(e) => update("category", e.target.value)}
-          >
-            {categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
-        {(p.category === "Custom" || !categories.includes(p.category)) && (
-          <label>
-            Custom category
-            <input
-              value={p.category === "Custom" ? "" : p.category}
-              onChange={(e) => update("category", e.target.value)}
-            />
-          </label>
-        )}
+        <label>Category</label>
+        <button
+          type="button"
+          className="setting-row"
+          onClick={() => setCategoryOpen(true)}
+        >
+          <CategoryIcon category={p.category} />
+          <strong>{p.category}</strong>
+          <ChevronRight />
+        </button>
         <div className="form-pair">
           <label>
             Date (optional)
@@ -273,7 +404,7 @@ function MotiveEditor({
           </select>
         </label>
         <fieldset>
-          <legend>Invite friends (optional · simulated)</legend>
+          <legend>Invite people</legend>
           {data.people
             .filter((x) => x.id !== p.organizer)
             .map((x) => (
@@ -302,9 +433,25 @@ function MotiveEditor({
             onChange={(e) => update("description", e.target.value)}
           />
         </label>
-        <ArtPicker value={p.artwork} onChange={(v) => update("artwork", v)} />
         <details>
-          <summary>Advanced · recurrence</summary>
+          <summary>Custom artwork</summary>
+          <ArtPicker value={p.artwork} onChange={(v) => update("artwork", v)} />
+        </details>
+        <details>
+          <summary>More options</summary>
+          <label>
+            Reminder
+            <select
+              value={p.reminder ?? ""}
+              onChange={(e) => update("reminder", e.target.value)}
+            >
+              {["", "1 hour before", "1 day before"].map((r) => (
+                <option key={r} value={r}>
+                  {r || "None"}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             Repeat
             <select
@@ -415,7 +562,9 @@ function PollEditor({
   value,
   save,
   close,
+  existing,
 }: {
+  existing: boolean;
   value: Poll;
   save: (p: Poll) => void;
   close: () => void;
@@ -423,7 +572,7 @@ function PollEditor({
   const [p, setP] = useState(value);
   const [error, setError] = useState("");
   return (
-    <Modal title="Poll editor" close={close}>
+    <Modal title="Create Poll" close={close}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -443,24 +592,37 @@ function PollEditor({
             onChange={(e) => setP({ ...p, question: e.target.value })}
           />
         </label>
-        <label>
-          Poll type
-          <select
-            disabled={Object.keys(value.ballots).length > 0}
-            value={p.kind}
-            onChange={(e) =>
-              setP({ ...p, kind: e.target.value as Poll["kind"] })
-            }
-          >
-            {["Date", "Time", "Location", "General Choice"].map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
-        </label>
+        <div className="segmented poll-types" aria-label="Poll type">
+          {(
+            ["Date", "Time", "Location", "General Choice"] as Poll["kind"][]
+          ).map((kind) => {
+            const Icon =
+              kind === "Date"
+                ? CalendarDays
+                : kind === "Time"
+                  ? Clock
+                  : kind === "Location"
+                    ? MapPin
+                    : BarChart3;
+            return (
+              <button
+                type="button"
+                key={kind}
+                disabled={existing}
+                aria-pressed={p.kind === kind}
+                onClick={() => setP({ ...p, kind })}
+              >
+                <Icon size={20} />
+                {kind === "General Choice" ? "Choice" : kind}
+              </button>
+            );
+          })}
+        </div>
         <label className="check">
           <input
             type="checkbox"
             checked={p.multiple}
+            disabled={existing}
             onChange={(e) => setP({ ...p, multiple: e.target.checked })}
           />
           Multiple choice
@@ -480,6 +642,16 @@ function PollEditor({
             value={p.deadline}
             onChange={(e) => setP({ ...p, deadline: e.target.value })}
           />
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={p.resultsBeforeVoting !== false}
+            onChange={(e) =>
+              setP({ ...p, resultsBeforeVoting: e.target.checked })
+            }
+          />
+          Show results before voting
         </label>
         <p className="fine">
           Changing an option label invalidates votes for that option only.
@@ -744,7 +916,7 @@ function Month({
               key={d}
               aria-pressed={date === d}
               aria-label={`${dateLabel(d)}, ${stats(d) ? "reported busy" : "no reported busy time"}`}
-              className={`${date === d ? "chosen" : ""} ${stats(d) ? "busy-day" : "open-day"}`}
+              className={`${date === d ? "chosen" : ""} ${stats(d) ? "busy-day" : (groupId ? groupAvailability(data, groupId, d, actor).some((m) => m.reported) : data.busy.some((b) => b.person === actor)) ? "open-day" : ""}`}
               onClick={() => setDate(d)}
             >
               {Number(d.slice(-2))}
@@ -765,17 +937,144 @@ function Month({
           <button className="panel" onClick={() => openBreakdown?.(best.d)}>
             <strong>Best Days</strong>
             <span>
-              {dateLabel(best.d)} · {best.count} busy
+              {ranked
+                .filter((d) => d.count === best.count)
+                .slice(0, 3)
+                .map((d) => dateLabel(d.d))
+                .join(" · ")}
             </span>
           </button>
           <button className="panel" onClick={() => openBreakdown?.(worst.d)}>
             <strong>Most Busy</strong>
             <span>
-              {dateLabel(worst.d)} · {worst.count} busy
+              {worst.count
+                ? ranked
+                    .filter((d) => d.count === worst.count)
+                    .slice(0, 3)
+                    .map((d) => dateLabel(d.d))
+                    .join(" · ")
+                : "None reported"}
             </span>
           </button>
         </div>
       )}
+    </>
+  );
+}
+function GroupAvailabilityPage({
+  data,
+  group,
+  actor,
+  initialDate,
+}: {
+  data: Snapshot;
+  group: Group;
+  actor: string;
+  initialDate: string;
+}) {
+  const [day, setDay] = useState(initialDate);
+  const month = new Date(`${initialDate}T12:00:00`);
+  const days = Array.from(
+    {
+      length: new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(),
+    },
+    (_, i) => {
+      const date = dayKey(
+        new Date(month.getFullYear(), month.getMonth(), i + 1),
+      );
+      const members = groupAvailability(data, group.id, date, actor);
+      return {
+        date,
+        busy: members.filter((m) => m.busy.length).length,
+        reported: members.filter((m) => m.reported).length,
+      };
+    },
+  );
+  const best = [...days].sort((a, b) => a.busy - b.busy).slice(0, 3);
+  const most = [...days]
+    .filter((d) => d.busy > 0)
+    .sort((a, b) => b.busy - a.busy)
+    .slice(0, 3);
+  return (
+    <>
+      <h1>Group Availability</h1>
+      <p>
+        {group.name} ·{" "}
+        {month.toLocaleDateString("en", { month: "long", year: "numeric" })}
+      </p>
+      <div className="availability-summary">
+        <div className="panel open-summary">
+          <CalendarDays />
+          <h2>Best days</h2>
+          <small>{best.map((d) => dateLabel(d.date)).join(" · ")}</small>
+        </div>
+        <div className="panel busy-summary">
+          <Users />
+          <h2>Most busy</h2>
+          <small>
+            {most.map((d) => dateLabel(d.date)).join(" · ") ||
+              "No busy dates reported"}
+          </small>
+        </div>
+      </div>
+      <p className="fine">
+        Based on reported busy periods. Unreported time does not guarantee
+        availability. Edit your busy periods in your personal Calendar.
+      </p>
+      <h2>Availability overview</h2>
+      <section className="panel setting-list">
+        {days.map((d) => (
+          <button
+            className="setting-row"
+            aria-pressed={day === d.date}
+            key={d.date}
+            onClick={() => setDay(d.date)}
+          >
+            <strong>{dateLabel(d.date)}</strong>
+            <span>
+              {d.busy ? `${d.busy} busy` : "No busy time reported"} ·{" "}
+              {group.members.length - d.reported} unknown
+            </span>
+            <ChevronRight />
+          </button>
+        ))}
+      </section>
+      <h2>{dateLabel(day)}</h2>
+      <section className="panel setting-list">
+        {groupAvailability(data, group.id, day, actor).map((m) => (
+          <div className="setting-row" key={m.person.id}>
+            <Avatar value={m.person.avatar} />
+            <strong>{m.person.name}</strong>
+            <span>
+              {m.busy.length
+                ? m.busy
+                    .map((b) =>
+                      b.start ? `${b.start}–${b.end}` : "Busy all day",
+                    )
+                    .join(", ")
+                : m.reported
+                  ? "No busy time reported"
+                  : "Unknown"}
+            </span>
+          </div>
+        ))}
+      </section>
+      <h2>Member availability</h2>
+      <section className="panel setting-list">
+        {group.members.map((id) => (
+          <div key={id} className="setting-row">
+            <Avatar
+              value={data.people.find((p) => p.id === id)?.avatar ?? "?"}
+            />
+            <strong>{data.people.find((p) => p.id === id)?.name}</strong>
+            <span>
+              {data.busy.some((b) => b.person === id)
+                ? `${days.filter((d) => data.busy.some((b) => b.person === id && isBusy(b, d.date))).length} busy days`
+                : "Unknown"}
+            </span>
+          </div>
+        ))}
+      </section>
     </>
   );
 }
@@ -786,7 +1085,7 @@ export default function Motive() {
   const [actor, setActor] = useState("alex");
   const [tab, setTab] = useState("Home");
   const [selected, setSelected] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState("Details");
+  const [detailTab, setDetailTab] = useState("Overview");
   const [groupId, setGroupId] = useState<string | null>(null);
   const [groupTab, setGroupTab] = useState("Motives");
   const [pollId, setPollId] = useState<string | null>(null);
@@ -795,6 +1094,9 @@ export default function Motive() {
   const [filter, setFilter] = useState("All");
   const [view, setView] = useState("List");
   const [notice, setNotice] = useState("");
+  const [friendSearch, setFriendSearch] = useState("");
+  const [friendInvite, setFriendInvite] = useState(false);
+  const [calendarView, setCalendarView] = useState("Month");
   const [choice, setChoice] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
   const [editGroup, setEditGroup] = useState<Group | null>(null);
@@ -829,7 +1131,7 @@ export default function Motive() {
   );
   const live = ordered.filter((p) => !p.draft && p.status !== "Cancelled");
   const next = live.find((p) => p.date >= today()) ?? live[0];
-  const open = (p: Plan, t = "Details") => {
+  const open = (p: Plan, t = "Overview") => {
     scroll.current = window.scrollY;
     setSelected(p.id);
     setDetailTab(t);
@@ -905,15 +1207,17 @@ export default function Motive() {
     });
   const row = (p: Plan) => (
     <button className="motive-row" key={p.id} onClick={() => open(p)}>
-      <Artwork value={p.artwork} />
+      <Artwork value={p.artwork} category={p.category} />
       <span className="row-copy">
+        <strong>{p.title}</strong>
         <small>
+          <CalendarDays size={13} />
           {dateLabel(p.date)} · {p.time || "Time undecided"}
         </small>
-        <strong>{p.title}</strong>
         <span>
-          {data.groups.find((g) => g.id === p.groupId)?.name || "Friends"} ·{" "}
-          {p.responses[actor] ?? "No Response"}
+          <Users size={13} />
+          {Object.values(p.responses).filter((r) => r === "Going").length} going
+          {p.place ? ` · ${p.place}` : ""}
         </span>
         <span
           className={`status ${p.status === "Cancelled" ? "cancelled" : ""}`}
@@ -922,7 +1226,7 @@ export default function Motive() {
           {p.recurrence ? ` · ${p.recurrence}` : ""}
         </span>
       </span>
-      <ArrowUpRight size={18} />
+      <ChevronRight size={18} />
     </button>
   );
   const list = (values: Plan[]) =>
@@ -938,11 +1242,13 @@ export default function Motive() {
     return (
       <main className="entry">
         <div className="wordmark">
-          M
-          <span className="brand-o">
-            O<b>✦</b>
-          </span>
-          TIVE
+          <Image
+            unoptimized
+            src="/brand/wordmark-reference.png"
+            alt="MOTIVE"
+            width="342"
+            height="79"
+          />
         </div>
         <Artwork className="entry-graphic">
           <h1>Owner preview</h1>
@@ -954,27 +1260,43 @@ export default function Motive() {
           messages.
         </p>
         <button className="primary" onClick={() => setActive(true)}>
-          Explore as Alex <ArrowUpRight size={18} />
+          Explore as Alex <ChevronRight size={18} />
         </button>
       </main>
     );
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${selected || groupId || breakdown ? "detail-page" : ""}`}
+    >
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
       <header className="topbar">
-        <button
-          className="wordmark"
-          aria-label="MOTIVE Home"
-          onClick={() => navigate("Home")}
-        >
-          M
-          <span className="brand-o">
-            O<b>✦</b>
-          </span>
-          TIVE
-        </button>
+        {tab === "Home" || selected || groupId || breakdown ? (
+          <button
+            className="wordmark"
+            aria-label="MOTIVE Home"
+            onClick={() => navigate("Home")}
+          >
+            <Image
+              unoptimized
+              src="/brand/wordmark-reference.png"
+              alt="MOTIVE"
+              width="342"
+              height="79"
+            />
+          </button>
+        ) : tab === "Friends" ? (
+          <button
+            className="icon-button"
+            aria-label="Back to Profile"
+            onClick={() => navigate("Profile")}
+          >
+            <ArrowLeft />
+          </button>
+        ) : (
+          <h1>{tab}</h1>
+        )}
         <div className="header-actions">
           <button
             className="icon-button"
@@ -991,11 +1313,11 @@ export default function Motive() {
             aria-label="Profile"
             onClick={() => navigate("Profile")}
           >
-            {person.avatar}
+            <Avatar value={person.avatar} />
           </button>
         </div>
       </header>
-      <p className="demo-banner">SYNTHETIC · {person.name} · This tab only</p>
+      <p className="demo-banner">Local demo</p>
       <main id="main-content">
         {notice && (
           <p className="notice" role="status">
@@ -1016,34 +1338,22 @@ export default function Motive() {
           </button>
         )}
         {breakdown && g ? (
-          <>
-            <h1>Availability</h1>
-            <h2>{dateLabel(breakdown)}</h2>
-            <p className="fine">
-              Read-only · {g.name} · based on reported availability
-            </p>
-            {groupAvailability(data, g.id, breakdown, actor).map((x) => (
-              <article className="panel" key={x.person.id}>
-                <strong>{x.person.name}</strong>
-                <p>
-                  {x.busy.length
-                    ? x.busy
-                        .map((b) =>
-                          b.start ? `${b.start}–${b.end}` : "Full day busy",
-                        )
-                        .join(", ")
-                    : x.reported
-                      ? "No busy time reported for this day"
-                      : "Unknown · no availability reported"}
-                </p>
-              </article>
-            ))}
-          </>
+          <GroupAvailabilityPage
+            data={data}
+            group={g}
+            actor={actor}
+            initialDate={breakdown}
+          />
         ) : poll && motive ? (
           (() => {
             const results = pollResults(poll),
               closed = pollClosed(poll, clock),
-              choices = poll.ballots[actor] ?? [];
+              choices = poll.ballots[actor] ?? [],
+              showResults =
+                closed ||
+                poll.resultsBeforeVoting !== false ||
+                choices.length > 0 ||
+                poll.creator === actor;
             const tied =
               results.votes > 0 &&
               results.counts.filter((c) => c === Math.max(...results.counts))
@@ -1065,8 +1375,10 @@ export default function Motive() {
                     : ""}
                 </p>
                 <p className="fine">
-                  {results.votes} votes · {results.voters} unique voters
-                  {tied ? " · Tied — no automatic winner" : ""}
+                  {showResults
+                    ? `${results.votes} votes · ${results.voters} unique voters`
+                    : "Vote to see results"}
+                  {showResults && tied ? " · Tied — no automatic winner" : ""}
                 </p>
                 {poll.options.map((o, i) => (
                   <div key={o.id}>
@@ -1089,17 +1401,37 @@ export default function Motive() {
                         )
                       }
                     >
+                      <span className="vote-circle" aria-hidden="true" />
                       <span>
-                        {choices.includes(o.id) ? "✓ " : ""}
                         {o.label}
+                        {o.suggestedBy && (
+                          <small>
+                            Suggested by{" "}
+                            {data.people.find((p) => p.id === o.suggestedBy)
+                              ?.name || "a member"}
+                          </small>
+                        )}
                       </span>
-                      <strong>{results.counts[i]} votes</strong>
-                      <span
-                        className="poll-bar"
-                        style={{
-                          width: `${(100 * results.counts[i]) / Math.max(1, results.voters)}%`,
-                        }}
-                      />
+                      {showResults && (
+                        <>
+                          <strong>
+                            {results.counts[i]} votes ·{" "}
+                            {Math.round(
+                              (100 * results.counts[i]) /
+                                Math.max(1, results.voters),
+                            )}
+                            %
+                          </strong>
+                          <span className="poll-track">
+                            <span
+                              className="poll-bar"
+                              style={{
+                                width: `${(100 * results.counts[i]) / Math.max(1, results.voters)}%`,
+                              }}
+                            />
+                          </span>
+                        </>
+                      )}
                     </button>
                     {poll.kind === "Date" &&
                       data.busy.some(
@@ -1212,59 +1544,67 @@ export default function Motive() {
           })()
         ) : motive ? (
           <>
-            <Artwork value={motive.artwork} className="detail-art">
-              <span className="art-caption">
-                {motive.category === "Drinks" && <Beer size={18} />}{" "}
-                {motive.category}
+            <div className="motive-heading">
+              <span className="category-art">
+                <CategoryIcon category={motive.category} />
               </span>
-            </Artwork>
-            <div className="section-heading">
-              <h1>{motive.title}</h1>
-              {motive.organizer === actor && (
-                <details className="overflow">
-                  <summary aria-label="Organizer actions">
-                    <MoreHorizontal />
-                  </summary>
-                  <button onClick={() => setEditing(motive)}>
-                    Edit Motive
-                  </button>
-                  {!motive.draft && motive.status !== "Cancelled" && (
-                    <>
-                      <button
-                        onClick={() =>
-                          run(() =>
-                            repo.savePlan({
-                              ...motive,
-                              status:
-                                motive.status === "Confirmed"
-                                  ? "Planning"
-                                  : "Confirmed",
-                            }),
-                          )
-                        }
-                      >
-                        {motive.status === "Confirmed"
-                          ? "Return to Planning"
-                          : "Confirm Motive"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Cancel this Motive? It will remain visible.",
-                            )
-                          )
+              <div>
+                <h1>{motive.title}</h1>
+                <p className="fine">
+                  {data.groups.find((g) => g.id === motive.groupId)?.name ||
+                    "Friends"}
+                </p>
+              </div>
+              <div className="section-heading">
+                {motive.organizer === actor && (
+                  <details className="overflow">
+                    <summary aria-label="Organizer actions">
+                      <MoreHorizontal />
+                    </summary>
+                    <button onClick={() => setEditing(motive)}>
+                      Edit Motive
+                    </button>
+                    {!motive.draft && motive.status !== "Cancelled" && (
+                      <>
+                        <button
+                          onClick={() =>
                             run(() =>
-                              repo.savePlan({ ...motive, status: "Cancelled" }),
-                            );
-                        }}
-                      >
-                        Cancel Motive
-                      </button>
-                    </>
-                  )}
-                </details>
-              )}
+                              repo.savePlan({
+                                ...motive,
+                                status:
+                                  motive.status === "Confirmed"
+                                    ? "Planning"
+                                    : "Confirmed",
+                              }),
+                            )
+                          }
+                        >
+                          {motive.status === "Confirmed"
+                            ? "Return to Planning"
+                            : "Confirm Motive"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Cancel this Motive? It will remain visible.",
+                              )
+                            )
+                              run(() =>
+                                repo.savePlan({
+                                  ...motive,
+                                  status: "Cancelled",
+                                }),
+                              );
+                          }}
+                        >
+                          Cancel Motive
+                        </button>
+                      </>
+                    )}
+                  </details>
+                )}
+              </div>
             </div>
             <p
               className={`status ${motive.status === "Cancelled" ? "cancelled" : ""}`}
@@ -1272,32 +1612,194 @@ export default function Motive() {
               {motive.draft ? "Private draft" : motive.status}
             </p>
             <div className="segmented">
-              {["Details", "Polls", "Attendance"].map((t) => (
+              {["Overview", "Polls", "Attendance", "Details"].map((t) => (
                 <button
                   key={t}
                   aria-pressed={detailTab === t}
                   onClick={() => setDetailTab(t)}
                 >
+                  {t === "Overview" ? (
+                    <House size={18} />
+                  ) : t === "Polls" ? (
+                    <BarChart3 size={18} />
+                  ) : t === "Attendance" ? (
+                    <Users size={18} />
+                  ) : (
+                    <Info size={18} />
+                  )}
                   {t}
                 </button>
               ))}
             </div>
-            {detailTab === "Details" ? (
-              <section className="panel">
-                <p>
-                  {dateLabel(motive.date)} · {motive.time || "Time undecided"}
+            {detailTab === "Overview" ? (
+              <>
+                <section className="panel setting-list">
+                  <button
+                    className="setting-row"
+                    onClick={() => setDetailTab("Polls")}
+                  >
+                    <CalendarDays />
+                    <span>
+                      <strong>Date</strong>
+                      <small>
+                        {dateLabel(motive.date)}
+                        {motive.time
+                          ? ` · ${motive.time}`
+                          : " · Time undecided"}
+                      </small>
+                    </span>
+                    {!motive.date && <span className="status">Poll</span>}
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    className="setting-row"
+                    onClick={() => setDetailTab("Polls")}
+                  >
+                    <MapPin />
+                    <span>
+                      <strong>Location</strong>
+                      <small>{motive.place || "Undecided"}</small>
+                    </span>
+                    {!motive.place && <span className="status">Poll</span>}
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    className="setting-row"
+                    onClick={() => setDetailTab("Attendance")}
+                  >
+                    <Users />
+                    <span>
+                      <strong>Attendance</strong>
+                      <small>
+                        {
+                          Object.values(motive.responses).filter(
+                            (r) => r === "Going",
+                          ).length
+                        }{" "}
+                        going ·{" "}
+                        {
+                          motive.invitees.filter(
+                            (id) =>
+                              !motive.responses[id] ||
+                              motive.responses[id] === "No Response",
+                          ).length
+                        }{" "}
+                        not yet responded
+                      </small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                </section>
+                <h2>About</h2>
+                <p className="panel">
+                  {motive.description || "No notes added."}
                 </p>
-                <p>{motive.place || "Location undecided"}</p>
-                <p>{motive.description || "No notes added."}</p>
-                <p className="fine">
-                  {g?.name ||
-                    data.groups.find((g) => g.id === motive.groupId)?.name ||
-                    "Friends"}{" "}
-                  · Organizer:{" "}
-                  {data.people.find((p) => p.id === motive.organizer)?.name}
-                  {motive.recurrence ? ` · ${motive.recurrence}` : ""}
-                </p>
-              </section>
+                {data.polls.some(
+                  (p) =>
+                    p.planId === motive.id &&
+                    !pollClosed(p, clock) &&
+                    !p.ballots[actor]?.length,
+                ) && (
+                  <button
+                    className="panel setting-row full-width"
+                    onClick={() => setDetailTab("Polls")}
+                  >
+                    <BarChart3 />
+                    <span>
+                      <strong>Open polls</strong>
+                      <small>Add your vote</small>
+                    </span>
+                    <ChevronRight />
+                  </button>
+                )}
+                <button
+                  className="primary full-width"
+                  onClick={() => setDetailTab("Attendance")}
+                >
+                  <Check size={18} />
+                  Respond
+                </button>
+              </>
+            ) : detailTab === "Details" ? (
+              <>
+                <h2>Planning</h2>
+                <section className="panel setting-list">
+                  <div className="setting-row">
+                    <Sparkles />
+                    <strong>Status</strong>
+                    <span>{motive.status}</span>
+                  </div>
+                  <div className="setting-row">
+                    <CalendarDays />
+                    <strong>Voting deadline</strong>
+                    <span>
+                      {data.polls
+                        .filter((p) => p.planId === motive.id && p.deadline)
+                        .map((p) => new Date(p.deadline).toLocaleString())
+                        .join(", ") || "Not set"}
+                    </span>
+                  </div>
+                  <div className="setting-row">
+                    <Bell />
+                    <strong>Reminder</strong>
+                    <span>{motive.reminder || "None"}</span>
+                  </div>
+                  <div className="setting-row">
+                    <Clock />
+                    <strong>Repeat</strong>
+                    <span>{motive.recurrence || "Never"}</span>
+                  </div>
+                </section>
+                <h2>People</h2>
+                <section className="panel setting-list">
+                  <div className="setting-row">
+                    <Users />
+                    <strong>Group</strong>
+                    <span>
+                      {data.groups.find((g) => g.id === motive.groupId)?.name ||
+                        "Friends"}
+                    </span>
+                  </div>
+                  <div className="setting-row">
+                    <Users />
+                    <strong>Invited</strong>
+                    <span>{motive.invitees.length} people</span>
+                  </div>
+                </section>
+                {motive.organizer === actor && (
+                  <>
+                    <h2>Actions</h2>
+                    <div className="panel setting-list">
+                      <button
+                        className="setting-row"
+                        onClick={() => setEditing(motive)}
+                      >
+                        <Pencil />
+                        <strong>Edit Motive</strong>
+                        <ChevronRight />
+                      </button>
+                      <button
+                        className="setting-row"
+                        onClick={() =>
+                          setEditing({
+                            ...motive,
+                            id: crypto.randomUUID(),
+                            title: `${motive.title} copy`,
+                            draft: true,
+                            responses: {},
+                            votes: [0, 0],
+                            vote: null,
+                          })
+                        }
+                      >
+                        <Plus />
+                        <strong>Duplicate Motive</strong>
+                        <ChevronRight />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
             ) : detailTab === "Polls" ? (
               <>
                 <div className="section-heading">
@@ -1328,32 +1830,34 @@ export default function Motive() {
                         <strong>{p.question}</strong>
                         <small>
                           {pollClosed(p, clock) ? "Closed" : "Open"} ·{" "}
-                          {pollResults(p).votes} votes · {pollResults(p).voters}{" "}
-                          voters
+                          {p.resultsBeforeVoting === false &&
+                          !pollClosed(p, clock) &&
+                          !p.ballots[actor]?.length &&
+                          p.creator !== actor
+                            ? "Vote to see results"
+                            : `${pollResults(p).votes} votes · ${pollResults(p).voters} voters`}
                         </small>
                       </span>
-                      <ArrowUpRight size={18} />
+                      <ChevronRight size={18} />
                     </button>
                   ))}
               </>
             ) : (
               <>
-                <h2>Your attendance</h2>
+                <h2>Your response</h2>
                 <div className="segmented">
-                  {(["Going", "Can't Go", "No Response"] as Attendance[]).map(
-                    (a) => (
-                      <button
-                        key={a}
-                        aria-pressed={
-                          (motive.responses[actor] ?? "No Response") === a
-                        }
-                        disabled={motive.status === "Cancelled" || motive.draft}
-                        onClick={() => run(() => repo.attend(motive.id, a))}
-                      >
-                        {a}
-                      </button>
-                    ),
-                  )}
+                  {(["Going", "Can't Go"] as Attendance[]).map((a) => (
+                    <button
+                      key={a}
+                      aria-pressed={
+                        (motive.responses[actor] ?? "No Response") === a
+                      }
+                      disabled={motive.status === "Cancelled" || motive.draft}
+                      onClick={() => run(() => repo.attend(motive.id, a))}
+                    >
+                      {a}
+                    </button>
+                  ))}
                 </div>
                 {data.busy.some(
                   (b) => b.person === actor && isBusy(b, motive.date),
@@ -1371,9 +1875,17 @@ export default function Motive() {
                           (id) => (motive.responses[id] ?? "No Response") === a,
                         )
                         .map((id) => (
-                          <p key={id}>
-                            {data.people.find((p) => p.id === id)?.name}
-                          </p>
+                          <div className="member" key={id}>
+                            <Avatar
+                              value={
+                                data.people.find((p) => p.id === id)?.avatar ??
+                                "?"
+                              }
+                            />
+                            <strong>
+                              {data.people.find((p) => p.id === id)?.name}
+                            </strong>
+                          </div>
                         ))}
                     </section>
                   ),
@@ -1399,27 +1911,40 @@ export default function Motive() {
                     <HelpCircle size={20} />
                   </button>
                 </div>
-                <h2>Next Up</h2>
+
                 {next ? (
                   <button className="hero-button" onClick={() => open(next)}>
-                    <Artwork value={next.artwork} className="hero">
+                    <Artwork
+                      value={next.artwork}
+                      category={next.category}
+                      className="hero"
+                    >
                       <span className="hero-top">
-                        {data.groups.find((g) => g.id === next.groupId)?.name ||
-                          "Friends"}
+                        <span className="next-badge">Next Up</span>
                         <ArrowUpRight />
                       </span>
                       <span className="hero-bottom">
+                        <strong>{next.title}</strong>
                         <small>
+                          <CalendarDays size={14} />
                           {dateLabel(next.date)} ·{" "}
                           {next.time || "Time undecided"}
                         </small>
-                        <strong>{next.title}</strong>
                         <span>{next.place || "Location undecided"}</span>
                         <span className="participation">
-                          ● ● ●{" "}
+                          <AvatarStack
+                            ids={next.invitees.filter(
+                              (id) => next.responses[id] === "Going",
+                            )}
+                            data={data}
+                          />
                           <small>
-                            {next.responses[actor] ?? "No Response"} ·{" "}
-                            {next.status}
+                            {
+                              Object.values(next.responses).filter(
+                                (r) => r === "Going",
+                              ).length
+                            }{" "}
+                            going · {next.status}
                           </small>
                         </span>
                       </span>
@@ -1439,7 +1964,22 @@ export default function Motive() {
                       live.some((m) => m.id === p.planId),
                   )) && (
                   <section>
-                    <h2>Needs You</h2>
+                    <div className="section-heading">
+                      <h2>Needs You</h2>
+                      <span className="count-badge">
+                        {live.filter(
+                          (p) =>
+                            (p.responses[actor] ?? "No Response") ===
+                            "No Response",
+                        ).length +
+                          data.polls.filter(
+                            (p) =>
+                              !pollClosed(p, clock) &&
+                              !p.ballots[actor]?.length &&
+                              live.some((m) => m.id === p.planId),
+                          ).length}
+                      </span>
+                    </div>
                     <div className="needs-grid">
                       {data.polls
                         .filter(
@@ -1491,15 +2031,21 @@ export default function Motive() {
                     className="text-button"
                     onClick={() => navigate("Motives")}
                   >
-                    All Motives ↗
+                    See all →
                   </button>
                 </div>
-                {list(live.filter((p) => p.id !== next?.id).slice(0, 3))}
+                {list(
+                  live
+                    .filter(
+                      (p) =>
+                        p.id !== next?.id && (!p.date || p.date >= today()),
+                    )
+                    .slice(0, 3),
+                )}
               </>
             )}
             {tab === "Motives" && (
               <>
-                <h1>Motives</h1>
                 <div className="segmented">
                   {["List", "Calendar"].map((t) => (
                     <button
@@ -1582,9 +2128,14 @@ export default function Motive() {
             {tab === "Groups" &&
               (g ? (
                 <>
-                  <Artwork value={g.artwork} className="group-art" />
+                  <div className="group-heading">
+                    <Artwork value={g.artwork} className="group-art" />
+                    <div>
+                      <h1>{g.name}</h1>
+                      <p className="fine">{g.members.length} members</p>
+                    </div>
+                  </div>
                   <div className="section-heading">
-                    <h1>{g.name}</h1>
                     {g.organizer === actor && (
                       <button
                         className="text-button"
@@ -1606,21 +2157,62 @@ export default function Motive() {
                     ))}
                   </div>
                   {groupTab === "Motives" ? (
-                    list(ordered.filter((p) => p.groupId === g.id && !p.draft))
+                    <>
+                      {["Upcoming", "Past"].map((label) => (
+                        <section key={label}>
+                          <h2>{label}</h2>
+                          {list(
+                            ordered.filter(
+                              (p) =>
+                                p.groupId === g.id &&
+                                !p.draft &&
+                                (label === "Past"
+                                  ? !!p.date && p.date < today()
+                                  : !p.date || p.date >= today()),
+                            ),
+                          )}
+                        </section>
+                      ))}
+                      <button
+                        className="primary full-width"
+                        onClick={() => setChoice(true)}
+                      >
+                        <Plus />
+                        Create Motive
+                      </button>
+                    </>
                   ) : groupTab === "Members" ? (
-                    g.members.map((id) => (
-                      <article className="panel member" key={id}>
-                        <span className="avatar">
-                          {data.people.find((p) => p.id === id)?.avatar}
-                        </span>
-                        <strong>
-                          {data.people.find((p) => p.id === id)?.name}
-                        </strong>
-                        <small>
-                          {g.organizer === id ? "Organizer" : "Member"}
-                        </small>
-                      </article>
-                    ))
+                    g.members
+                      .map((id) => (
+                        <article className="panel member" key={id}>
+                          <Avatar
+                            value={
+                              data.people.find((p) => p.id === id)?.avatar ??
+                              "?"
+                            }
+                          />
+                          <strong>
+                            {data.people.find((p) => p.id === id)?.name}
+                          </strong>
+                          <small>
+                            {g.organizer === id ? "Organizer" : "Member"}
+                          </small>
+                        </article>
+                      ))
+                      .concat(
+                        g.organizer === actor
+                          ? [
+                              <button
+                                key="invite"
+                                className="secondary full-width"
+                                onClick={() => setEditGroup(g)}
+                              >
+                                <Users />
+                                Invite people
+                              </button>,
+                            ]
+                          : [],
+                      )
                   ) : (
                     <>
                       <Month
@@ -1653,13 +2245,19 @@ export default function Motive() {
                             !p.draft,
                         ),
                       )}
+                      <button
+                        className="primary full-width"
+                        onClick={() => setChoice(true)}
+                      >
+                        <Plus />
+                        Create Motive
+                      </button>
                     </>
                   )}
                 </>
               ) : (
                 <>
                   <div className="section-heading">
-                    <h1>Groups</h1>
                     <button
                       className="text-button"
                       onClick={() =>
@@ -1690,9 +2288,10 @@ export default function Motive() {
                         <Artwork value={g.artwork} />
                         <span>
                           <strong>{g.name}</strong>
-                          <small>{g.members.length} members · Private</small>
+                          <small>{g.members.length} members</small>
+                          <AvatarStack ids={g.members} data={data} />
                         </span>
-                        <ArrowUpRight size={18} />
+                        <ChevronRight size={18} />
                       </button>
                     ))
                   ) : (
@@ -1704,13 +2303,27 @@ export default function Motive() {
               ))}
             {tab === "Calendar" && (
               <>
-                <h1>Your calendar</h1>
-                <Month
-                  data={data}
-                  actor={actor}
-                  date={date}
-                  setDate={setDate}
-                />
+                <div className="segmented">
+                  {["Month", "Upcoming"].map((v) => (
+                    <button
+                      key={v}
+                      aria-pressed={calendarView === v}
+                      onClick={() => setCalendarView(v)}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                {calendarView === "Month" ? (
+                  <Month
+                    data={data}
+                    actor={actor}
+                    date={date}
+                    setDate={setDate}
+                  />
+                ) : (
+                  list(live.filter((p) => !!p.date && p.date >= today()))
+                )}
                 <div className="section-heading">
                   <h2>{dateLabel(date)}</h2>
                   <button
@@ -1750,7 +2363,6 @@ export default function Motive() {
             )}
             {tab === "Notifications" && (
               <>
-                <h1>Notifications</h1>
                 <p className="fine">
                   Local simulated notices only. No notification delivery or
                   browser permission is enabled.
@@ -1766,7 +2378,7 @@ export default function Motive() {
                           run(() => repo.readNotice(n.id));
                           const p = data.plans.find((p) => p.id === n.planId);
                           if (p) {
-                            open(p, n.pollId ? "Polls" : "Details");
+                            open(p, n.pollId ? "Polls" : "Overview");
                             setPollId(n.pollId ?? null);
                           }
                         }}
@@ -1786,53 +2398,149 @@ export default function Motive() {
             {tab === "Profile" && (
               <>
                 <div className="profile-heading">
-                  <span className="avatar">{person.avatar}</span>
+                  <Avatar value={person.avatar} />
                   <h1>{person.name}</h1>
                 </div>
-                <form
-                  className="panel"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const f = new FormData(e.currentTarget);
-                    run(() =>
-                      repo.profile({
-                        name: String(f.get("name")),
-                        avatar: String(f.get("avatar")),
-                      }),
-                    );
-                  }}
-                  key={actor}
-                >
-                  <label>
-                    Display name
-                    <input
-                      name="name"
-                      required
-                      maxLength={30}
-                      defaultValue={person.name}
+                <details className="panel">
+                  <summary>Edit profile</summary>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const f = new FormData(e.currentTarget);
+                      run(() =>
+                        repo.profile({
+                          name: String(f.get("name")),
+                          avatar: String(f.get("avatar")),
+                        }),
+                      );
+                    }}
+                    key={actor}
+                  >
+                    <label>
+                      Display name
+                      <input
+                        name="name"
+                        required
+                        maxLength={30}
+                        defaultValue={person.name}
+                      />
+                    </label>
+                    <input type="hidden" name="avatar" value={person.avatar} />
+                    <ImageUpload
+                      onChange={(avatar) =>
+                        run(() => repo.profile({ name: person.name, avatar }))
+                      }
                     />
-                  </label>
-                  <label>
-                    Avatar
-                    <select name="avatar" defaultValue={person.avatar}>
-                      {["A", "S", "J", "R", "✳", "◒"].map((a) => (
-                        <option key={a}>{a}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <button className="primary">Save profile</button>
-                </form>
-                <h2>Friends</h2>
-                {data.friends.map((id) => (
-                  <article className="panel member" key={id}>
-                    <span className="avatar">
-                      {data.people.find((p) => p.id === id)?.avatar}
+                    <button className="primary">Save profile</button>
+                  </form>
+                </details>
+                <section className="panel setting-list">
+                  <button
+                    className="setting-row"
+                    onClick={() => navigate("Friends")}
+                  >
+                    <Users />
+                    <span>
+                      <strong>Friends</strong>
+                      <small>{data.friends.length} friends</small>
                     </span>
-                    <strong>
-                      {data.people.find((p) => p.id === id)?.name}
-                    </strong>
-                  </article>
-                ))}
+                    <ChevronRight />
+                  </button>
+                  <button
+                    className="setting-row"
+                    onClick={() => navigate("Friends")}
+                  >
+                    <Mail />
+                    <span>
+                      <strong>Invitations</strong>
+                      <small>{data.requests.length} pending</small>
+                    </span>
+                    <ChevronRight />
+                  </button>
+                </section>
+                <h2>Settings</h2>
+                <section className="panel setting-list">
+                  <button
+                    className="setting-row"
+                    onClick={() => navigate("Notifications")}
+                  >
+                    <Bell />
+                    <strong>Notifications</strong>
+                    <ChevronRight />
+                  </button>
+                  <details>
+                    <summary className="setting-row">
+                      <Shield />
+                      <strong>Privacy</strong>
+                    </summary>
+                    <p className="fine">
+                      Owner-only prototype. Local state resets on reload. No
+                      real invitations or external notifications.
+                    </p>
+                  </details>
+                  <details>
+                    <summary className="setting-row">
+                      <Info />
+                      <strong>Account & About</strong>
+                    </summary>
+                    <p className="fine">
+                      MOTIVE · synthetic accounts for local testing.
+                    </p>
+                  </details>
+                </section>
+              </>
+            )}
+            {tab === "Friends" && (
+              <>
+                <div className="section-heading">
+                  <div>
+                    <h1>Friends</h1>
+                    <p className="fine">{data.friends.length} friends</p>
+                  </div>
+                  <button
+                    className="primary"
+                    onClick={() => setFriendInvite(true)}
+                  >
+                    <Plus size={18} />
+                    Add Friend
+                  </button>
+                </div>
+                <label className="search-field">
+                  <Search size={20} />
+                  <input
+                    aria-label="Search friends"
+                    placeholder="Search friends"
+                    value={friendSearch}
+                    onChange={(e) => setFriendSearch(e.target.value)}
+                  />
+                </label>
+                <section className="panel setting-list">
+                  {data.friends
+                    .filter((id) =>
+                      data.people
+                        .find((p) => p.id === id)
+                        ?.name.toLowerCase()
+                        .includes(friendSearch.toLowerCase()),
+                    )
+                    .map((id) => (
+                      <div className="setting-row" key={id}>
+                        <Avatar
+                          value={
+                            data.people.find((p) => p.id === id)?.avatar ?? "?"
+                          }
+                        />
+                        <strong>
+                          {data.people.find((p) => p.id === id)?.name}
+                        </strong>
+                      </div>
+                    ))}
+                  {!data.friends.some((id) =>
+                    data.people
+                      .find((p) => p.id === id)
+                      ?.name.toLowerCase()
+                      .includes(friendSearch.toLowerCase()),
+                  ) && <p className="fine">No matching friends.</p>}
+                </section>
                 <h2>Friend requests</h2>
                 {data.requests.length ? (
                   data.requests.map((id) => (
@@ -1861,6 +2569,10 @@ export default function Motive() {
                 ) : (
                   <p className="empty">No pending requests.</p>
                 )}
+              </>
+            )}
+            {tab === "Profile" && (
+              <>
                 <details className="panel">
                   <summary>Prototype settings</summary>
                   <label>
@@ -1944,6 +2656,32 @@ export default function Motive() {
           </button>
         ))}
       </nav>
+      {friendInvite && (
+        <Modal title="Add Friend" close={() => setFriendInvite(false)}>
+          <p className="fine">Synthetic requests only. Nobody is contacted.</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const username = String(
+                new FormData(e.currentTarget).get("username"),
+              ).trim();
+              if (run(() => repo.requestFriend(username)))
+                setFriendInvite(false);
+            }}
+          >
+            <label>
+              Friend username
+              <input name="username" required placeholder="riley.demo" />
+            </label>
+            <button className="primary full-width">Send request</button>
+          </form>
+          <p className="fine">
+            {(data.sentRequests ?? [])
+              .map((id) => data.people.find((p) => p.id === id)?.name)
+              .join(", ") || "No requests sent"}
+          </p>
+        </Modal>
+      )}
       {choice && (
         <Modal title="What are you creating?" close={() => setChoice(false)}>
           <p className="fine">Both are synthetic and begin in Planning.</p>
@@ -1969,7 +2707,7 @@ export default function Motive() {
             setData(result);
             setEditing(null);
             setSelected(p.id);
-            setDetailTab("Details");
+            setDetailTab("Overview");
             setNotice(
               p.draft
                 ? "Private draft saved in this tab."
@@ -1994,6 +2732,7 @@ export default function Motive() {
       )}
       {editPoll && (
         <PollEditor
+          existing={data.polls.some((p) => p.id === editPoll.id)}
           value={editPoll}
           close={() => setEditPoll(null)}
           save={(p) => {

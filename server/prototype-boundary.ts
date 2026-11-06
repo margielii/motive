@@ -6,9 +6,11 @@ export function prototypeBoundary(request: Request): Response | null {
     path === "/" ||
     path === "/manifest.webmanifest" ||
     path === "/sw.js" ||
-    path === "/favicon.svg" ||
     /^\/fonts\/(inter\.ttf|OFL\.txt)$/.test(path) ||
     /^\/icons\/motive-(192|512|apple)\.png$/.test(path) ||
+    /^\/brand\/(wordmark|icon|seats|hoops|controller|night|dinner)-reference\.png$/.test(
+      path,
+    ) ||
     path.startsWith("/_next/static/");
   if (asset && ["GET", "HEAD"].includes(request.method)) return null;
   return Response.json(

@@ -7,7 +7,7 @@ const require = createRequire(import.meta.resolve("wrangler"));
 const { Miniflare } = require("miniflare");
 test(
   "emitted prototype Worker serves shell/PWA and rejects every server operation",
-  { skip: !process.env.MOTIVE_BUILT_WORKER },
+  { skip: !process.env.MOTIVE_BUILT_WORKER, timeout: 150_000 },
   async (t) => {
     const files = [
       "index.js",
@@ -15,6 +15,7 @@ test(
         (p) => p.endsWith(".js") && p !== "index.js",
       ),
     ];
+    console.log("Production integration: constructing Miniflare");
     const mf = new Miniflare({
       modules: files.map((p) => ({
         type: "ESModule",
@@ -33,6 +34,7 @@ test(
       },
     });
     t.after(() => mf.dispose());
+    console.log("Production integration: requesting shell");
     const home = await mf.dispatchFetch("https://motive.test/");
     assert.equal(home.status, 200);
     assert.match(await home.text(), /Explore as Alex/);
@@ -44,6 +46,15 @@ test(
       "/icons/motive-192.png",
       "/icons/motive-512.png",
       "/icons/motive-apple.png",
+      ...[
+        "wordmark",
+        "icon",
+        "seats",
+        "hoops",
+        "controller",
+        "night",
+        "dinner",
+      ].map((name) => `/brand/${name}-reference.png`),
     ])
       assert.equal(
         (await mf.dispatchFetch("https://motive.test" + path)).status,
@@ -71,6 +82,8 @@ test(
       "/api/groups",
       "/api/images/sample",
       "/private",
+      "/brand/provenance.json",
+      "/brand/unapproved.png",
       "/",
     ])
       for (const method of path === "/"
